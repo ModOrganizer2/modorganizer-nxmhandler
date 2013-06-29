@@ -22,6 +22,8 @@ public:
   ~HandlerStorage();
 
   void clear();
+  /// register the primary proxy handler
+  void registerProxy(const QString &proxyPath);
   /// register handler (for all games)
   void registerHandler(const QString &executable, bool prepend);
   /// register handler for specified games

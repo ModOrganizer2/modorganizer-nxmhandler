@@ -1,6 +1,8 @@
 #include "handlerstorage.h"
 #include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
 #include <boost/assign.hpp>
 
 HandlerStorage::HandlerStorage(const QString &storagePath, QObject *parent)
@@ -18,6 +20,17 @@ HandlerStorage::~HandlerStorage()
 void HandlerStorage::clear()
 {
   m_Handlers.clear();
+}
+
+void HandlerStorage::registerProxy(const QString &proxyPath)
+{
+  m_SettingsPath = QFileInfo(proxyPath).absolutePath() + "/nxmhandlers.ini";
+  QSettings settings("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
+  QString myExe = QString("\"%1\" ").arg(QDir::toNativeSeparators(proxyPath)).append("\"%1\"");
+  settings.setValue("Default", "URL:NXM Protocol");
+  settings.setValue("URL Protocol", "");
+  settings.setValue("shell/open/command/Default", myExe);
+  settings.sync();
 }
 
 void HandlerStorage::registerHandler(const QString &executable, bool prepend)

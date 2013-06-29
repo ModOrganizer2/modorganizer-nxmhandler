@@ -2,6 +2,7 @@
 #include "ui_handlerwindow.h"
 #include "addbinarydialog.h"
 #include <QMenu>
+#include <QMessageBox>
 #include <QDir>
 
 
@@ -17,6 +18,16 @@ HandlerWindow::HandlerWindow(QWidget *parent)
 HandlerWindow::~HandlerWindow()
 {
   delete ui;
+}
+
+void HandlerWindow::setPrimaryHandler(const QString &handlerPath)
+{
+  if (handlerPath == QCoreApplication::applicationFilePath()) {
+    ui->registerButton->setEnabled(false);
+    ui->handlerView->setText(tr("<Current>"));
+  } else {
+    ui->handlerView->setText(handlerPath);
+  }
 }
 
 
@@ -73,4 +84,18 @@ void HandlerWindow::on_handlersWidget_customContextMenuRequested(const QPoint &p
 
   contextMenu.move(ui->handlersWidget->mapToGlobal(pos));
   contextMenu.exec();
+}
+
+void HandlerWindow::on_registerButton_clicked()
+{
+  if (QMessageBox::question(this, tr("Change handler registration?"),
+                            tr("This will make the nxmhandler.exe you called the primary handler registered in the system.\n"
+                               "That has no immediate impact on how links are handled.\nUse this if you moved Mod Organizer "
+                               "or if you uninstalled the Mod Organizer installation that was previously registered. Continue?"),
+                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+    ui->handlerView->setText(tr("<Current>"));
+    ui->registerButton->setEnabled(false);
+
+    m_Storage->registerProxy(QCoreApplication::applicationFilePath());
+  }
 }

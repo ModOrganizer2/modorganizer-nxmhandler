@@ -24,16 +24,6 @@ void handleLink(const QString &executable, const QString &link)
 }
 
 
-// register self as nxm handler
-void registerProxy(QSettings &settings, const QString &proxyPath)
-{
-  QString myExe = QString("\"%1\" ").arg(QDir::toNativeSeparators(proxyPath)).append("\"%1\"");
-  settings.setValue("Default", "URL:NXM Protocol");
-  settings.setValue("URL Protocol", "");
-  settings.setValue("shell/open/command/Default", myExe);
-  settings.sync();
-}
-
 // ensure a nxmhandler.exe is registered to handle nxm-links, then load the handler storage for that registered instance
 // (even if it's different from the one actually being run)
 HandlerStorage *loadStorage()
@@ -43,22 +33,18 @@ HandlerStorage *loadStorage()
   QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
   QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
 
-  qDebug("%s", qPrintable(handlerPath));
   if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) && QFile::exists(handlerPath)) {
-    qDebug("a");
     // already a nxmhandler.exe registered, use its configuration
     storage = new HandlerStorage(QFileInfo(handlerPath).absolutePath());
   } else if (!handlerPath.isEmpty()) {
-    qDebug("b");
     // a foreign nxm handler, register ourself and use that handler as an option
     storage = new HandlerStorage(QCoreApplication::applicationDirPath());
     storage->registerHandler(handlerPath, false);
-    registerProxy(handlerReg, QCoreApplication::applicationFilePath());
+    storage->registerProxy(QCoreApplication::applicationFilePath());
   } else {
-    qDebug("c");
     // no handler registered yet or the existing handler is invalid -> overwrite
     storage = new HandlerStorage(QCoreApplication::applicationDirPath());
-    registerProxy(handlerReg, QCoreApplication::applicationFilePath());
+    storage->registerProxy(QCoreApplication::applicationFilePath());
   }
   return storage;
 }
@@ -101,6 +87,9 @@ int main(int argc, char *argv[])
   } else {
     HandlerWindow win;
     win.setHandlerStorage(storage);
+    QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
+    QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
+    win.setPrimaryHandler(handlerPath);
     win.show();
 
     return app.exec();
