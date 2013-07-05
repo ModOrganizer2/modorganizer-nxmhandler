@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <Shlwapi.h>
+#include <boost/scoped_ptr.hpp>
 
 
 #pragma comment(linker, "/manifestDependency:\"name='dlls' processorArchitecture='x86' version='1.0.0.0' type='win32' \"")
@@ -53,15 +54,17 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
-  HandlerStorage *storage = loadStorage();
+  boost::scoped_ptr<HandlerStorage> storage(loadStorage());
   Q_ASSERT(storage != NULL);
 
   QStringList args = app.arguments();
   if (args.count() > 1) {
     if (args.at(1) == "reg") {
-      if (args.count() == 3) {
-        storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), args.at(3), true);
+      if (args.count() == 4) {
+        storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true);
         return 0;
+      } else {
+        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
       }
     } else if (args.at(1).startsWith("nxm://")) {
       NXMUrl url(args.at(1));
@@ -86,7 +89,7 @@ int main(int argc, char *argv[])
     return 0;
   } else {
     HandlerWindow win;
-    win.setHandlerStorage(storage);
+    win.setHandlerStorage(storage.get());
     QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
     QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
     win.setPrimaryHandler(handlerPath);

@@ -33,7 +33,6 @@ void HandlerWindow::setPrimaryHandler(const QString &handlerPath)
 
 void HandlerWindow::setHandlerStorage(HandlerStorage *storage)
 {
-  storage->setParent(this);
   m_Storage = storage;
 
   ui->handlersWidget->clear();

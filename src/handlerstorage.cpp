@@ -45,10 +45,15 @@ void HandlerStorage::registerHandler(const QString &executable, bool prepend)
 
 void HandlerStorage::registerHandler(const QStringList &games, const QString &executable, bool prepend)
 {
+  QStringList gamesLower;
+  foreach (const QString &game, games) {
+    gamesLower.append(game.toLower());
+  }
+
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
     if (iter->executable == executable) {
-      // nothing to the, executable is already registered
-      iter->games = games;
+      // executable already registered, update supported games
+      iter->games = gamesLower;
       return;
     }
   }
@@ -56,7 +61,7 @@ void HandlerStorage::registerHandler(const QStringList &games, const QString &ex
   // executable not yet registered
   HandlerInfo info;
   info.ID = m_Handlers.size();
-  info.games = games;
+  info.games = gamesLower;
   info.executable = executable;
   if (prepend) {
     m_Handlers.push_front(info);
