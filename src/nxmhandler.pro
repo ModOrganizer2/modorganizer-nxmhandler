@@ -15,13 +15,11 @@ TEMPLATE = app
 SOURCES += main.cpp \
     handlerwindow.cpp \
     addbinarydialog.cpp \
-    sortabletreewidget.cpp \
     handlerstorage.cpp
 
 HEADERS  += \
     handlerwindow.h \
     addbinarydialog.h \
-    sortabletreewidget.h \
     handlerstorage.h
 
 FORMS    += \
