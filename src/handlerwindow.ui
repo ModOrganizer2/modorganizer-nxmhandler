@@ -26,7 +26,7 @@
      </widget>
     </item>
     <item>
-     <widget class="SortableTreeWidget" name="handlersWidget">
+     <widget class="MOBase::SortableTreeWidget" name="handlersWidget">
       <property name="contextMenuPolicy">
        <enum>Qt::CustomContextMenu</enum>
       </property>
@@ -138,9 +138,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SortableTreeWidget</class>
+   <class>MOBase::SortableTreeWidget</class>
    <extends>QTreeWidget</extends>
-   <header>sortabletreewidget.h</header>
+   <header location="global">sortabletreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>
