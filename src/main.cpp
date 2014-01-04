@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QAbstractButton>
 #include <QDir>
 #include <Shlwapi.h>
 #include <boost/scoped_ptr.hpp>
@@ -25,19 +26,10 @@ void handleLink(const QString &executable, const QString &link)
 }
 
 
-// ensure a nxmhandler.exe is registered to handle nxm-links, then load the handler storage for that registered instance
-// (even if it's different from the one actually being run)
-HandlerStorage *loadStorage()
+HandlerStorage *registerExecutable(QString handlerPath)
 {
   HandlerStorage *storage = NULL;
-
-  QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
-  QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
-
-  if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) && QFile::exists(handlerPath)) {
-    // already a nxmhandler.exe registered, use its configuration
-    storage = new HandlerStorage(QFileInfo(handlerPath).absolutePath());
-  } else if (!handlerPath.isEmpty()) {
+  if (!handlerPath.isEmpty()) {
     // a foreign nxm handler, register ourself and use that handler as an option
     storage = new HandlerStorage(QCoreApplication::applicationDirPath());
     storage->registerHandler(handlerPath, false);
@@ -50,16 +42,53 @@ HandlerStorage *loadStorage()
   return storage;
 }
 
+// ensure a nxmhandler.exe is registered to handle nxm-links, then load the handler storage for that registered instance
+// (even if it's different from the one actually being run)
+HandlerStorage *loadStorage(bool forceReg)
+{
+  HandlerStorage *storage = NULL;
+
+  QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
+  QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
+
+  QSettings settings(QCoreApplication::applicationDirPath() + "/nxmhandlers.ini", QSettings::IniFormat);
+  bool noRegister = settings.value("noregister", false).toBool();
+
+  if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) && QFile::exists(handlerPath)) {
+    // already a nxmhandler.exe registered, use its configuration
+    storage = new HandlerStorage(QFileInfo(handlerPath).absolutePath());
+  } else if (!noRegister || forceReg) {
+    QMessageBox registerBox(QMessageBox::Question, QObject::tr("Register?"),
+                            QObject::tr("Mod Organizer is not set up to handle nxm links. Associate it with nxm links?"),
+                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
+    registerBox.button(QMessageBox::Save)->setText(QObject::tr("No, don't ask again"));
+    switch (registerBox.exec()) {
+      case QMessageBox::Yes: {
+          registerExecutable(handlerPath);
+        } break;
+      case QMessageBox::Save: {
+          settings.setValue("noregister", true);
+        } break;
+    }
+  }
+  return storage;
+}
+
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
-  boost::scoped_ptr<HandlerStorage> storage(loadStorage());
-  Q_ASSERT(storage != NULL);
-
   QStringList args = app.arguments();
+
+  bool forceReg = (args.count() > 1) && args.at(1) == "forcereg";
+
+  boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
+  if (storage.get() == NULL) {
+    return 0;
+  }
+
   if (args.count() > 1) {
-    if (args.at(1) == "reg") {
+    if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
       if (args.count() == 4) {
         storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true);
         return 0;
