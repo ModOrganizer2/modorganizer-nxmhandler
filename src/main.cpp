@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
   if (args.count() > 1) {
     if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
       if (args.count() == 4) {
-        storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true);
+        storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true, forceReg);
         return 0;
       } else {
         QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));

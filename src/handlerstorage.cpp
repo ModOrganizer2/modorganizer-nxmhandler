@@ -40,21 +40,29 @@ void HandlerStorage::registerHandler(const QString &executable, bool prepend)
   for (auto iter = knownGames.begin(); iter != knownGames.end(); ++iter) {
     games.append(iter->second);
   }
-  registerHandler(games, executable, prepend);
+  registerHandler(games, executable, prepend, false);
 }
 
-void HandlerStorage::registerHandler(const QStringList &games, const QString &executable, bool prepend)
+void HandlerStorage::registerHandler(const QStringList &games, const QString &executable, bool prepend, bool rereg)
 {
   QStringList gamesLower;
   foreach (const QString &game, games) {
     gamesLower.append(game.toLower());
   }
-
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
     if (iter->executable == executable) {
-      // executable already registered, update supported games
-      iter->games = gamesLower;
-      return;
+      // executable already registered, update supported games and move it to top if requested
+      HandlerInfo info = *iter;
+      info.games = gamesLower;
+      if (rereg) {
+        m_Handlers.erase(iter);
+        if (prepend) {
+          m_Handlers.push_front(info);
+        } else {
+          m_Handlers.push_back(info);
+        }
+      }
+      return; // important: in the rereg-case we changed the list thus screwing up the iterator
     }
   }
 

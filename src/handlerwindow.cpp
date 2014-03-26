@@ -51,7 +51,7 @@ void HandlerWindow::closeEvent(QCloseEvent *event)
   m_Storage->clear();
   for (int i = 0; i < ui->handlersWidget->topLevelItemCount(); ++i) {
     QTreeWidgetItem *item = ui->handlersWidget->topLevelItem(i);
-    m_Storage->registerHandler(item->text(0).split(","), item->text(1), false);
+    m_Storage->registerHandler(item->text(0).split(","), item->text(1), false, false);
   }
   QMainWindow::closeEvent(event);
 }

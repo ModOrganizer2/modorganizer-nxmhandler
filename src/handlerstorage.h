@@ -27,7 +27,7 @@ public:
   /// register handler (for all games)
   void registerHandler(const QString &executable, bool prepend);
   /// register handler for specified games
-  void registerHandler(const QStringList &games, const QString &executable, bool prepend);
+  void registerHandler(const QStringList &games, const QString &executable, bool prepend, bool rereg);
   QString getHandler(const QString &game) const;
   std::vector<std::pair<QString, QString> > knownGames() const;
   std::list<HandlerInfo> handlers() const { return m_Handlers; }
