@@ -26,6 +26,8 @@ FORMS    += \
     handlerwindow.ui \
     addbinarydialog.ui
 
+INCLUDEPATH += ../uibase "$(BOOSTPATH)"
+LIBS += -luibase -lshell32
 
 CONFIG(debug, debug|release) {
   OUTDIR = $$OUT_PWD/debug
@@ -39,8 +41,5 @@ CONFIG(debug, debug|release) {
 
 OUTDIR ~= s,/,$$QMAKE_DIR_SEP,g
 DSTDIR ~= s,/,$$QMAKE_DIR_SEP,g
-
-INCLUDEPATH += ../uibase "$(BOOSTPATH)"
-LIBS += -luibase -lshell32
 
 QMAKE_POST_LINK += xcopy /y /I $$quote($$OUTDIR\\nxmhandler*.exe) $$quote($$DSTDIR) $$escape_expand(\\n)
