@@ -6,9 +6,11 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QAbstractButton>
+#include <QDesktopServices>
 #include <QDir>
 #include <Shlwapi.h>
 #include <boost/scoped_ptr.hpp>
+#include <../uibase/json.h>
 
 
 #pragma comment(linker, "/manifestDependency:\"name='dlls' processorArchitecture='x86' version='1.0.0.0' type='win32' \"")
@@ -74,6 +76,62 @@ HandlerStorage *loadStorage(bool forceReg)
   return storage;
 }
 
+static void applyChromeFix()
+{
+  QString fileName = QDir(QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+                          + "/../google/chrome/user data/local state").canonicalPath();
+  QFile chromeLocalState(fileName);
+
+  if (!chromeLocalState.exists()) {
+    QMessageBox::information(NULL, QObject::tr("File doesn't exit"), fileName);
+    return;
+  }
+
+  if (!chromeLocalState.open(QIODevice::ReadOnly)) {
+    QMessageBox::information(NULL, QObject::tr("Failed to open"), fileName);
+    return;
+  }
+
+  bool success = false;
+  QVariant document = QtJson::parse(chromeLocalState.readAll(), success);
+  chromeLocalState.close();
+  if (success) {
+    QVariantMap docMap = document.toMap();
+    QVariantMap handlers = docMap.find("protocol_handler")->toMap();
+    // tomap returns empty maps if the key doesn't exist. Therefore if excluded_schemes exists, protocol_handler existed as well
+    if (handlers.contains("excluded_schemes")) {
+      QVariantMap schemes = handlers.find("excluded_schemes")->toMap();
+      if (schemes.value("nxm", true).toBool()) {
+        if (QMessageBox::question(NULL, "Apply Chrome fix",
+                                  "Chrome may not support nexus links even though the association is set up correctly. "
+                                  "Do you want to apply a fix for that (You have to close chrome before pressing yes or "
+                                  "this will have no effect!)?",
+                                  QMessageBox::Yes | QMessageBox::No) == QMessageBox::No) {
+          return;
+        }
+        schemes["nxm"] = false;
+        handlers["excluded_schemes"] = schemes;
+        docMap["protocol_handler"] = handlers;
+        QByteArray result = QtJson::serialize(docMap, success);
+        if (success) {
+          chromeLocalState.open(QIODevice::WriteOnly | QIODevice::Truncate);
+          chromeLocalState.write(result);
+          chromeLocalState.close();
+          qDebug("chrome fix applied");
+        } else {
+          QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("failed to write data"));
+        }
+      } else {
+        QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("already set"));
+      }
+    } else {
+      QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("no excluded_schemes"));
+    }
+  } else {
+    QMessageBox::information(NULL, QObject::tr("Failed to parse"), fileName);
+  }
+}
+
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
@@ -91,6 +149,7 @@ int main(int argc, char *argv[])
     if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
       if (args.count() == 4) {
         storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true, forceReg);
+        applyChromeFix();
         return 0;
       } else {
         QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
