@@ -78,8 +78,12 @@ HandlerStorage *loadStorage(bool forceReg)
 
 static void applyChromeFix()
 {
-  QString fileName = QDir(QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
-                          + "/../google/chrome/user data/local state").canonicalPath();
+#if QT_VERSION >= 0x050000
+  QString dataPath = QDir::fromNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+#else
+  QString dataPath = QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+#endif
+  QString fileName = QDir(dataPath + "/../google/chrome/user data/local state").canonicalPath();
   QFile chromeLocalState(fileName);
 
   if (!chromeLocalState.exists()) {
@@ -149,7 +153,9 @@ int main(int argc, char *argv[])
     if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
       if (args.count() == 4) {
         storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true, forceReg);
-        applyChromeFix();
+        if (forceReg) {
+          applyChromeFix();
+        }
         return 0;
       } else {
         QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
