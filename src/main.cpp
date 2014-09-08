@@ -78,7 +78,13 @@ HandlerStorage *loadStorage(bool forceReg)
 
 static void applyChromeFix()
 {
-  QString fileName = QDir(QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+  QString fileName = QDir(QDir::fromNativeSeparators(
+#if QT_VERSION >= 0x050000
+                            QStandardPaths::writableLocation(QStandardPaths::DataLocation)
+#else
+                            QDesktopServices::storageLocation(QDesktopServices::DataLocation)
+#endif
+                            )
                           + "/../google/chrome/user data/local state").canonicalPath();
   QFile chromeLocalState(fileName);
 
