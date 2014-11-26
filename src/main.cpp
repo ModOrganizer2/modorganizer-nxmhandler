@@ -127,8 +127,6 @@ static void applyChromeFix()
         } else {
           QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("failed to write data"));
         }
-      } else {
-        QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("already set"));
       }
     } else {
       QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("no excluded_schemes"));
