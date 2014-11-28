@@ -18,7 +18,7 @@ class HandlerStorage : public QObject
 {
   Q_OBJECT
 public:
-  HandlerStorage(const QString &storagePath, QObject *parent = NULL);
+  HandlerStorage(const QString &storagePath, QObject *parent = nullptr);
   ~HandlerStorage();
 
   void clear();
