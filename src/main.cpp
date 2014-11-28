@@ -84,7 +84,7 @@ static void applyChromeFix()
   QString dataPath = QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 #endif
   QString fileName = QDir(dataPath + "/../google/chrome/user data/local state").canonicalPath();
-                            )
+
   QFile chromeLocalState(fileName);
 
   if (!chromeLocalState.exists()) {
