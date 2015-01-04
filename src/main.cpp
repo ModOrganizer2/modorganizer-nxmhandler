@@ -21,7 +21,7 @@ using MOBase::ToWString;
 
 void handleLink(const QString &executable, const QString &link)
 {
-  ::ShellExecute(NULL, TEXT("open"), ToWString(executable).c_str(),
+  ::ShellExecute(nullptr, TEXT("open"), ToWString(executable).c_str(),
                  ToWString(link).c_str(),
                  ToWString(QFileInfo(executable).absolutePath()).c_str(),
                  SW_SHOWNORMAL);
@@ -30,7 +30,7 @@ void handleLink(const QString &executable, const QString &link)
 
 HandlerStorage *registerExecutable(QString handlerPath)
 {
-  HandlerStorage *storage = NULL;
+  HandlerStorage *storage = nullptr;
   if (!handlerPath.isEmpty()) {
     // a foreign nxm handler, register ourself and use that handler as an option
     storage = new HandlerStorage(QCoreApplication::applicationDirPath());
@@ -48,7 +48,7 @@ HandlerStorage *registerExecutable(QString handlerPath)
 // (even if it's different from the one actually being run)
 HandlerStorage *loadStorage(bool forceReg)
 {
-  HandlerStorage *storage = NULL;
+  HandlerStorage *storage = nullptr;
 
   QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
   QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
@@ -78,23 +78,22 @@ HandlerStorage *loadStorage(bool forceReg)
 
 static void applyChromeFix()
 {
-  QString fileName = QDir(QDir::fromNativeSeparators(
 #if QT_VERSION >= 0x050000
-                            QStandardPaths::writableLocation(QStandardPaths::DataLocation)
+  QString dataPath = QDir::fromNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
 #else
-                            QDesktopServices::storageLocation(QDesktopServices::DataLocation)
+  QString dataPath = QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 #endif
-                            )
-                          + "/../google/chrome/user data/local state").canonicalPath();
+  QString fileName = QDir(dataPath + "/../google/chrome/user data/local state").canonicalPath();
+
   QFile chromeLocalState(fileName);
 
   if (!chromeLocalState.exists()) {
-    QMessageBox::information(NULL, QObject::tr("File doesn't exit"), fileName);
+    QMessageBox::information(nullptr, QObject::tr("File doesn't exit"), fileName);
     return;
   }
 
   if (!chromeLocalState.open(QIODevice::ReadOnly)) {
-    QMessageBox::information(NULL, QObject::tr("Failed to open"), fileName);
+    QMessageBox::information(nullptr, QObject::tr("Failed to open"), fileName);
     return;
   }
 
@@ -108,7 +107,7 @@ static void applyChromeFix()
     if (handlers.contains("excluded_schemes")) {
       QVariantMap schemes = handlers.find("excluded_schemes")->toMap();
       if (schemes.value("nxm", true).toBool()) {
-        if (QMessageBox::question(NULL, "Apply Chrome fix",
+        if (QMessageBox::question(nullptr, "Apply Chrome fix",
                                   "Chrome may not support nexus links even though the association is set up correctly. "
                                   "Do you want to apply a fix for that (You have to close chrome before pressing yes or "
                                   "this will have no effect!)?",
@@ -125,14 +124,14 @@ static void applyChromeFix()
           chromeLocalState.close();
           qDebug("chrome fix applied");
         } else {
-          QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("failed to write data"));
+          QMessageBox::information(nullptr, QObject::tr("Failed"), QObject::tr("failed to write data"));
         }
       }
     } else {
-      QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("no excluded_schemes"));
+      QMessageBox::information(nullptr, QObject::tr("Failed"), QObject::tr("no excluded_schemes"));
     }
   } else {
-    QMessageBox::information(NULL, QObject::tr("Failed to parse"), fileName);
+    QMessageBox::information(nullptr, QObject::tr("Failed to parse"), fileName);
   }
 }
 
@@ -145,7 +144,7 @@ int main(int argc, char *argv[])
   bool forceReg = (args.count() > 1) && args.at(1) == "forcereg";
 
   boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
-  if (storage.get() == NULL) {
+  if (storage.get() == nullptr) {
     return 0;
   }
 
@@ -153,10 +152,12 @@ int main(int argc, char *argv[])
     if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
       if (args.count() == 4) {
         storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true, forceReg);
-        applyChromeFix();
+        if (forceReg) {
+          applyChromeFix();
+        }
         return 0;
       } else {
-        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
+        QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
       }
     } else if (args.at(1).startsWith("nxm://")) {
       NXMUrl url(args.at(1));
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
         handleLink(executable, args.at(1));
         return 0;
       } else {
-        QMessageBox::warning(NULL, QObject::tr("No handler found"),
+        QMessageBox::warning(nullptr, QObject::tr("No handler found"),
                              QObject::tr( "No application registered to handle this game.\n"
                                           "If you expected Mod Organizer to handle the link, "
                                           "you have to click the Browser button inside that Mod Organizer installation "
@@ -175,7 +176,7 @@ int main(int argc, char *argv[])
         return 1;
       }
     } else {
-      QMessageBox::warning(NULL, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
+      QMessageBox::warning(nullptr, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
       return 1;
     }
     return 0;
