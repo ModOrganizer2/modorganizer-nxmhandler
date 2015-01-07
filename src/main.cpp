@@ -89,12 +89,12 @@ static void applyChromeFix()
   QFile chromeLocalState(fileName);
 
   if (!chromeLocalState.exists()) {
-    QMessageBox::information(NULL, QObject::tr("File doesn't exit"), fileName);
+    // probably simply means that chrome isn't installed
     return;
   }
 
   if (!chromeLocalState.open(QIODevice::ReadOnly)) {
-    QMessageBox::information(NULL, QObject::tr("Failed to open"), fileName);
+    // don't know, still no reason to report an error
     return;
   }
 
@@ -128,11 +128,7 @@ static void applyChromeFix()
           QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("failed to write data"));
         }
       }
-    } else {
-      QMessageBox::information(NULL, QObject::tr("Failed"), QObject::tr("no excluded_schemes"));
     }
-  } else {
-    QMessageBox::information(NULL, QObject::tr("Failed to parse"), fileName);
   }
 }
 
@@ -153,7 +149,9 @@ int main(int argc, char *argv[])
     if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
       if (args.count() == 4) {
         storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true, forceReg);
-        applyChromeFix();
+        if (args.at(1) == "forcereg") {
+          applyChromeFix();
+        }
         return 0;
       } else {
         QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
