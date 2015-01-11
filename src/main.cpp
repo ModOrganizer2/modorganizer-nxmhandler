@@ -166,8 +166,7 @@ int main(int argc, char *argv[])
         QMessageBox::warning(NULL, QObject::tr("No handler found"),
                              QObject::tr( "No application registered to handle this game.\n"
                                           "If you expected Mod Organizer to handle the link, "
-                                          "you have to click the Browser button inside that Mod Organizer installation "
-                                          "once to register it as a handler.\n"
+                                          "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.\n"
                                           "If you have NMM installed, you can re-register it for nxm-links so it handles "
                                           "links MO doesn't."));
         return 1;
