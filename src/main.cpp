@@ -66,7 +66,7 @@ HandlerStorage *loadStorage(bool forceReg)
     registerBox.button(QMessageBox::Save)->setText(QObject::tr("No, don't ask again"));
     switch (registerBox.exec()) {
       case QMessageBox::Yes: {
-          registerExecutable(handlerPath);
+          storage = registerExecutable(handlerPath);
         } break;
       case QMessageBox::Save: {
           settings.setValue("noregister", true);
