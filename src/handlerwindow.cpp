@@ -90,7 +90,7 @@ void HandlerWindow::on_handlersWidget_customContextMenuRequested(const QPoint &p
   QMenu contextMenu;
 
   m_ContextIndex = ui->handlersWidget->indexAt(pos);
-  if (m_ContextIndex.isValid() != NULL) {
+  if (m_ContextIndex.isValid()) {
     contextMenu.addAction(ui->actionRemove);
   } else {
     contextMenu.addAction(ui->actionAdd);
