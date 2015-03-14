@@ -41,3 +41,6 @@ release:QMAKE_CXXFLAGS += /Zi /GL
 release:QMAKE_LFLAGS += /DEBUG /LTCG /OPT:REF /OPT:ICF
 
 QMAKE_POST_LINK += xcopy /y /I $$quote($$SRCDIR\\nxmhandler*.exe) $$quote($$DSTDIR) $$escape_expand(\\n)
+
+OTHER_FILES += \
+    SConscript

@@ -1,0 +1,58 @@
+Import('qt_env')
+
+env = qt_env.Clone()
+
+modules = [
+    'Core',
+    'Gui',
+]
+
+if env['QT_MAJOR_VERSION'] > 4:
+    modules += [
+        'Widgets',
+    ]
+
+env.EnableQt4Modules(['Qt' + n for n in modules],
+                     debug = env['CONFIG'] == 'debug')
+env.Uic4(Glob('*.ui'))
+
+env.AppendUnique(LIBPATH = [
+    '../uibase',
+])
+
+env.AppendUnique(LIBS = [
+    'uibase',
+    'shell32',
+])
+
+# Note the order of this is important, or you can pick up the wrong report.h...
+# Doing appendunique seems to throw the moc code into a tizzy
+env['CPPPATH'] += [
+    '../uibase',
+    '.',            # Why is this necessary?
+    '$BOOST_PATH',
+]
+
+env['WINDOWS_EMBED_MANIFEST'] = True
+env.AppendUnique(LINKFLAGS = [
+    '/SUBSYSTEM:WINDOWS',
+    '${EXE_MANIFEST_DEPENDENCY}'
+])
+
+# This extra cpp is just sad. It probably means something is set up wrong.
+prog = env.Program('nxmhandler',
+                 env.Glob('*.cpp') + env.Object('json.o', '../uibase/json.cpp'))
+env.Depends(prog, env.Value(env['ENV']['DLLSPATH']))
+
+# FIXME scons bug doesn't provide pdb for executable.
+if env['CONFIG'] == 'debug':
+    x = env.File('nxmhandler.pdb')
+    env.Depends(x, prog)
+    prog.append(x)
+
+env.Install(env['INSTALL_PATH'],
+            filter(lambda x: str(x).endswith('.exe') or str(x).endswith('.pdb'),
+                   prog))
+
+#release:QMAKE_CXXFLAGS += /Zi /GL
+#release:QMAKE_LFLAGS += /DEBUG /LTCG /OPT:REF /OPT:ICF
