@@ -40,7 +40,7 @@ env.AppendUnique(LINKFLAGS = [
 
 # This extra cpp is just sad. It probably means something is set up wrong.
 prog = env.Program('nxmhandler',
-                 env.Glob('*.cpp') + env.Object('json.o', '../uibase/json.cpp'))
+               env.Glob('*.cpp') + env.Object('json.obj', '../uibase/json.cpp'))
 
 env.Install(env['INSTALL_PATH'],
             filter(lambda x: str(x).endswith('.exe') or str(x).endswith('.pdb'),
