@@ -42,9 +42,7 @@ env.AppendUnique(LINKFLAGS = [
 prog = env.Program('nxmhandler',
                env.Glob('*.cpp') + env.Object('json.obj', '../uibase/json.cpp'))
 
-env.Install(env['INSTALL_PATH'],
-            filter(lambda x: str(x).endswith('.exe') or str(x).endswith('.pdb'),
-                   prog))
+env.InstallModule(prog)
 
 #release:QMAKE_CXXFLAGS += /Zi /GL
 #release:QMAKE_LFLAGS += /DEBUG /LTCG /OPT:REF /OPT:ICF
