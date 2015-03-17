@@ -30,7 +30,7 @@ env.AppendUnique(LIBS = [
 env['CPPPATH'] += [
     '../uibase',
     '.',            # Why is this necessary?
-    '$BOOST_PATH',
+    '${BOOSTPATH}',
 ]
 
 env.AppendUnique(LINKFLAGS = [
