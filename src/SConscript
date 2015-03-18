@@ -12,23 +12,19 @@ if env['QT_MAJOR_VERSION'] > 4:
         'Widgets',
     ]
 
-env.EnableQt4Modules(['Qt' + n for n in modules],
-                     debug = env['CONFIG'] == 'debug')
+env.EnableQtModules(*modules)
+
 env.Uic4(Glob('*.ui'))
 
-env.AppendUnique(LIBPATH = [
-    '../uibase',
-])
+env.RequireLibraries('uibase')
 
 env.AppendUnique(LIBS = [
-    'uibase',
     'shell32',
 ])
 
 # Note the order of this is important, or you can pick up the wrong report.h...
 # Doing appendunique seems to throw the moc code into a tizzy
 env['CPPPATH'] += [
-    '../uibase',
     '.',            # Why is this necessary?
     '${BOOSTPATH}',
 ]
