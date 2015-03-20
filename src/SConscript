@@ -42,3 +42,6 @@ env.InstallModule(prog)
 
 #release:QMAKE_CXXFLAGS += /Zi /GL
 #release:QMAKE_LFLAGS += /DEBUG /LTCG /OPT:REF /OPT:ICF
+
+res = env['QT_USED_MODULES']
+Return('res')
