@@ -44,3 +44,9 @@ QMAKE_POST_LINK += xcopy /y /I $$quote($$SRCDIR\\nxmhandler*.exe) $$quote($$DSTD
 
 OTHER_FILES += \
     SConscript
+
+APP_ICON +=\
+    app_icon.rc
+
+DISTFILES += \
+    app_icon.rc
