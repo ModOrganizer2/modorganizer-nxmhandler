@@ -46,11 +46,11 @@ void HandlerStorage::registerHandler(const QString &executable, bool prepend)
 void HandlerStorage::registerHandler(const QStringList &games, const QString &executable, bool prepend, bool rereg)
 {
   QStringList gamesLower;
-  foreach (const QString &game, games) {
+  for (const QString &game : games) {
     gamesLower.append(game.toLower());
   }
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
-    if (iter->executable == executable) {
+    if (iter->executable.compare(executable, Qt::CaseInsensitive) == 0) {
       // executable already registered, update supported games and move it to top if requested
       HandlerInfo info = *iter;
       info.games = gamesLower;
