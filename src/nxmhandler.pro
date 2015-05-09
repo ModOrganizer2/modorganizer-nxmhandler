@@ -43,4 +43,11 @@ release:QMAKE_LFLAGS += /DEBUG /LTCG /OPT:REF /OPT:ICF
 QMAKE_POST_LINK += xcopy /y /I $$quote($$SRCDIR\\nxmhandler*.exe) $$quote($$DSTDIR) $$escape_expand(\\n)
 
 OTHER_FILES += \
-    SConscript
+    SConscript\
+    app_icon.rc
+
+APP_ICON +=\
+    app_icon.rc
+
+RC_FILE +=\
+    app_icon.rc
