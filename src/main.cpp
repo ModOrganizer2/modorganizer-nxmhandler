@@ -4,13 +4,11 @@
 #include <utility.h>
 #include <QApplication>
 #include <QMessageBox>
-#include <QFileInfo>
 #include <QAbstractButton>
 #include <QDesktopServices>
-#include <QDir>
-#include <Shlwapi.h>
 #include <boost/scoped_ptr.hpp>
-#include <../uibase/json.h>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 
 #pragma comment(linker, "/manifestDependency:\"name='dlls' processorArchitecture='x86' version='1.0.0.0' type='win32' \"")
@@ -97,16 +95,16 @@ static void applyChromeFix()
     return;
   }
 
-  bool success = false;
-  QVariant document = QtJson::parse(chromeLocalState.readAll(), success);
+  QJsonParseError parseError;
+  QJsonDocument document = QJsonDocument::fromJson(chromeLocalState.readAll(), &parseError);
   chromeLocalState.close();
-  if (success) {
-    QVariantMap docMap = document.toMap();
-    QVariantMap handlers = docMap.find("protocol_handler")->toMap();
-    // tomap returns empty maps if the key doesn't exist. Therefore if excluded_schemes exists, protocol_handler existed as well
+  if (parseError.error == QJsonParseError::NoError) {
+    QJsonObject docMap = document.object();
+    QJsonObject handlers = docMap["protocol_handler"].toObject();
+    // toObject returns empty object if the key doesn't exist. Therefore if excluded_schemes exists, protocol_handler existed as well
     if (handlers.contains("excluded_schemes")) {
-      QVariantMap schemes = handlers.find("excluded_schemes")->toMap();
-      if (schemes.value("nxm", true).toBool()) {
+      QJsonObject schemes = handlers["excluded_schemes"].toObject();
+      if (schemes["nxm"].toBool(true)) {
         if (QMessageBox::question(nullptr, "Apply Chrome fix",
                                   "Chrome may not support nexus links even though the association is set up correctly. "
                                   "Do you want to apply a fix for that (You have to close chrome before pressing yes or "
@@ -117,15 +115,11 @@ static void applyChromeFix()
         schemes["nxm"] = false;
         handlers["excluded_schemes"] = schemes;
         docMap["protocol_handler"] = handlers;
-        QByteArray result = QtJson::serialize(docMap, success);
-        if (success) {
-          chromeLocalState.open(QIODevice::WriteOnly | QIODevice::Truncate);
-          chromeLocalState.write(result);
-          chromeLocalState.close();
-          qDebug("chrome fix applied");
-        } else {
-          QMessageBox::information(nullptr, QObject::tr("Failed"), QObject::tr("failed to write data"));
-        }
+        QByteArray result = QJsonDocument(docMap).toJson();
+        chromeLocalState.open(QIODevice::WriteOnly | QIODevice::Truncate);
+        chromeLocalState.write(result);
+        chromeLocalState.close();
+        qDebug("chrome fix applied");
       }
     }
   }
