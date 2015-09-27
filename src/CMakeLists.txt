@@ -45,11 +45,15 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 ADD_DEFINITIONS(-D_UNICODE -DUNICODE -DNOMINMAX)
 
-SET(project_path "${CMAKE_SOURCE_DIR}/.." CACHE PATH "path to the other mo projects")
+SET(default_project_path "${CMAKE_SOURCE_DIR}/..")
+GET_FILENAME_COMPONENT(${default_project_path} ${default_project_path} REALPATH)
+
+SET(project_path "${default_project_path}" CACHE PATH "path to the other mo projects")
+SET(lib_path "${project_path}/../install/libs")
 
 INCLUDE_DIRECTORIES(${project_path}/uibase/src)
 
-LINK_DIRECTORIES(${project_path}/uibase/src)
+LINK_DIRECTORIES(${lib_path})
 
 ADD_EXECUTABLE(nxmhandler WIN32 ${nxmhandler_HDRS} ${nxmhandler_SRCS} ${nxmhandler_UIHDRS} ${nxmhandler_RCS})
 TARGET_LINK_LIBRARIES(nxmhandler
