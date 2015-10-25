@@ -38,10 +38,7 @@ ic_env = env.Clone()
 ic_env.AppendUnique(CPPPATH = '../organizer')
 ic_env.AppendUnique(CPPDEFINES = 'SCONS_BUILD')
 icon = ic_env.RES('app_icon.rc')
-# This extra cpp is just sad. It probably means something is set up wrong.
-prog = env.Program('nxmhandler',
-              env.Glob('*.cpp') + env.Object('json.obj', '../uibase/json.cpp') +
-                                                                           icon)
+prog = env.Program('nxmhandler', env.Glob('*.cpp') + icon)
 
 env.InstallModule(prog)
 
