@@ -19,8 +19,7 @@ TEMPLATE = app
 SOURCES += main.cpp \
     handlerwindow.cpp \
     addbinarydialog.cpp \
-    handlerstorage.cpp \
-    ../uibase/json.cpp
+    handlerstorage.cpp
 
 HEADERS  += \
     handlerwindow.h \
