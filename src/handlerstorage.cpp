@@ -36,9 +36,8 @@ void HandlerStorage::registerProxy(const QString &proxyPath)
 void HandlerStorage::registerHandler(const QString &executable, bool prepend)
 {
   QStringList games;
-  auto knownGames = this->knownGames();
-  for (auto iter = knownGames.begin(); iter != knownGames.end(); ++iter) {
-    games.append(iter->second);
+  for (const auto &game : this->knownGames()) {
+    games.append(game.second);
   }
   registerHandler(games, executable, prepend, false);
 }
@@ -68,7 +67,7 @@ void HandlerStorage::registerHandler(const QStringList &games, const QString &ex
 
   // executable not yet registered
   HandlerInfo info;
-  info.ID = m_Handlers.size();
+  info.ID = static_cast<int>(m_Handlers.size());
   info.games = gamesLower;
   info.executable = executable;
   if (prepend) {
@@ -80,21 +79,24 @@ void HandlerStorage::registerHandler(const QStringList &games, const QString &ex
 
 QString HandlerStorage::getHandler(const QString &game) const
 {
-  for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
-    if (iter->games.contains(game, Qt::CaseInsensitive)) {
-      return iter->executable;
+  for (const HandlerInfo &info : m_Handlers) {
+    if (info.games.contains(game, Qt::CaseInsensitive)) {
+      return info.executable;
     }
   }
   return QString();
 }
 
-std::vector<std::pair<QString, QString> > HandlerStorage::knownGames() const
+std::vector<std::pair<QString, QString>> HandlerStorage::knownGames() const
 {
-  return boost::assign::list_of (std::make_pair<QString, QString>("Oblivion", "oblivion"))
-                                (std::make_pair<QString, QString>("Fallout 3", "fallout3"))
-                                (std::make_pair<QString, QString>("Fallout NV", "falloutnv"))
-                                (std::make_pair<QString, QString>("Skyrim", "skyrim"))
-      (std::make_pair<QString, QString>("Other", "other"));
+  return {
+    std::make_pair<QString, QString>("Oblivion", "oblivion"),
+    std::make_pair<QString, QString>("Fallout 3", "fallout3"),
+    std::make_pair<QString, QString>("Fallout 4", "fallout4"),
+    std::make_pair<QString, QString>("Fallout NV", "falloutnv"),
+    std::make_pair<QString, QString>("Skyrim", "skyrim"),
+    std::make_pair<QString, QString>("Other", "other")
+  };
 }
 
 QString HandlerStorage::stripCall(const QString &call)
@@ -133,7 +135,7 @@ void HandlerStorage::loadStore()
   HandlerInfo info;
   QSettings handlerReg("HKEY_CLASSES_ROOT\\nxm\\", QSettings::NativeFormat);
 
-  info.ID = m_Handlers.size();
+  info.ID = static_cast<int>(m_Handlers.size());
   auto games = knownGames();
   QStringList ids;
   for (auto iter = games.begin(); iter != games.end(); ++iter) {
@@ -157,7 +159,7 @@ void HandlerStorage::loadStore()
 void HandlerStorage::saveStore()
 {
   QSettings settings(m_SettingsPath, QSettings::IniFormat);
-  settings.beginWriteArray("handlers", m_Handlers.size());
+  settings.beginWriteArray("handlers", static_cast<int>(m_Handlers.size()));
   int i = 0;
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
     settings.setArrayIndex(i++);

@@ -57,6 +57,17 @@ HandlerStorage *loadStorage(bool forceReg)
   if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) && QFile::exists(handlerPath)) {
     // already a nxmhandler.exe registered, use its configuration
     storage = new HandlerStorage(QFileInfo(handlerPath).absolutePath());
+    if (forceReg && (QString::compare(QDir::toNativeSeparators(QCoreApplication::applicationFilePath()),
+                                      handlerPath,
+                                      Qt::CaseInsensitive))) {
+      if (QMessageBox::question(nullptr, QObject::tr("Change Handler?"),
+                                QObject::tr("A nxm handler from a different Mod Organizer installation has been "
+                                            "registered. Do you want to replace it? This is usually not necessary "
+                                            "unless the other installation is defective."),
+                                QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+        storage->registerProxy(QCoreApplication::applicationFilePath());
+      }
+    }
   } else if (!noRegister || forceReg) {
     QMessageBox registerBox(QMessageBox::Question, QObject::tr("Register?"),
                             QObject::tr("Mod Organizer is not set up to handle nxm links. Associate it with nxm links?"),
@@ -76,11 +87,7 @@ HandlerStorage *loadStorage(bool forceReg)
 
 static void applyChromeFix()
 {
-#if QT_VERSION >= 0x050000
   QString dataPath = QDir::fromNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
-#else
-  QString dataPath = QDir::fromNativeSeparators(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
-#endif
   QString fileName = QDir(dataPath + "/../google/chrome/user data/local state").canonicalPath();
 
   QFile chromeLocalState(fileName);
