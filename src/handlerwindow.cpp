@@ -3,6 +3,8 @@
 #include "addbinarydialog.h"
 #include <QMenu>
 #include <QMessageBox>
+#include <QShortcut>
+#include <QKeyEvent>
 #include <QDir>
 
 
@@ -11,9 +13,10 @@ HandlerWindow::HandlerWindow(QWidget *parent)
 {
   ui->setupUi(this);
 
-
   connect(ui->actionAdd, SIGNAL(triggered()), this, SLOT(addBinaryDialog()));
   connect(ui->actionRemove, SIGNAL(triggered()), this, SLOT(removeBinary()));
+
+  new QShortcut(QKeySequence(Qt::Key_Delete), this, SLOT(removeBinary()));
 }
 
 HandlerWindow::~HandlerWindow()
@@ -80,17 +83,17 @@ void HandlerWindow::addBinaryDialog()
   }
 }
 
-void HandlerWindow::removeBinary()
-{
-  ui->handlersWidget->takeTopLevelItem(m_ContextIndex.row());
+void HandlerWindow::removeBinary() {
+  ui->handlersWidget->takeTopLevelItem(
+      ui->handlersWidget->currentIndex().row());
 }
 
 void HandlerWindow::on_handlersWidget_customContextMenuRequested(const QPoint &pos)
 {
   QMenu contextMenu;
 
-  m_ContextIndex = ui->handlersWidget->indexAt(pos);
-  if (m_ContextIndex.isValid()) {
+  QModelIndex idx = ui->handlersWidget->indexAt(pos);
+  if (idx.isValid()) {
     contextMenu.addAction(ui->actionRemove);
   } else {
     contextMenu.addAction(ui->actionAdd);
@@ -113,3 +116,4 @@ void HandlerWindow::on_registerButton_clicked()
     m_Storage->registerProxy(QCoreApplication::applicationFilePath());
   }
 }
+

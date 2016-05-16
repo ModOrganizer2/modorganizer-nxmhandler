@@ -39,7 +39,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Select Binary</string>
+          <string>Select Handler Binary (i.e. ModOrganizer.exe)</string>
          </property>
         </widget>
        </item>

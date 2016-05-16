@@ -29,8 +29,10 @@ private slots:
 
 private:
   Ui::HandlerWindow *ui;
-  QPersistentModelIndex m_ContextIndex;
   HandlerStorage *m_Storage;
+
 };
+
+
 
 #endif // HANDLERWINDOW_H

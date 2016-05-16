@@ -25,61 +25,89 @@ void handleLink(const QString &executable, const QString &link)
                  SW_SHOWNORMAL);
 }
 
-
-HandlerStorage *registerExecutable(QString handlerPath)
-{
+HandlerStorage *registerExecutable(const QDir &storagePath,
+                                   const QString &handlerPath) {
   HandlerStorage *storage = nullptr;
   if (!handlerPath.isEmpty()) {
-    // a foreign nxm handler, register ourself and use that handler as an option
-    storage = new HandlerStorage(QCoreApplication::applicationDirPath());
+    // a foreign or global nxm handler, register ourself and use that handler as
+    // an option
+    storage = new HandlerStorage(storagePath.path());
     storage->registerHandler(handlerPath, false);
     storage->registerProxy(QCoreApplication::applicationFilePath());
   } else {
     // no handler registered yet or the existing handler is invalid -> overwrite
-    storage = new HandlerStorage(QCoreApplication::applicationDirPath());
+    storage = new HandlerStorage(storagePath.path());
     storage->registerProxy(QCoreApplication::applicationFilePath());
   }
   return storage;
 }
 
-// ensure a nxmhandler.exe is registered to handle nxm-links, then load the handler storage for that registered instance
+// ensure a nxmhandler.exe is registered to handle nxm-links, then load the
+// handler storage for that registered instance
 // (even if it's different from the one actually being run)
-HandlerStorage *loadStorage(bool forceReg)
-{
+HandlerStorage *loadStorage(bool forceReg) {
   HandlerStorage *storage = nullptr;
 
-  QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
-  QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
+  QDir globalStorage(
+      QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+  globalStorage.cd("../ModOrganizer");
+  QDir baseDir;
+  if (globalStorage.exists()) {
+    baseDir = globalStorage;
+  } else {
+    baseDir = QDir(qApp->applicationDirPath());
+  }
+  QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
+                       QSettings::NativeFormat);
+  QString handlerPath = HandlerStorage::stripCall(
+      handlerReg.value("shell/open/command/Default", QString()).toString());
 
-  QSettings settings(QCoreApplication::applicationDirPath() + "/nxmhandlers.ini", QSettings::IniFormat);
+  QDir handlerBaseDir = QFileInfo(handlerPath).absoluteDir();
+
+  QSettings settings(baseDir.absoluteFilePath("nxmhandler.ini"),
+                     QSettings::IniFormat);
   bool noRegister = settings.value("noregister", false).toBool();
-
-  if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) && QFile::exists(handlerPath)) {
-    // already a nxmhandler.exe registered, use its configuration
+  if (globalStorage.exists("nxmhandler.ini")) {
+    // global configuration avaible - use it
+    storage = new HandlerStorage(globalStorage.path());
+  } else if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
+             QFile::exists(handlerPath) &&
+             handlerBaseDir.exists("nxmhandler.ini")) {
+    // a portable installation is registered to handle links, use its
+    // configuration
     storage = new HandlerStorage(QFileInfo(handlerPath).absolutePath());
-    if (forceReg && (QString::compare(QDir::toNativeSeparators(QCoreApplication::applicationFilePath()),
-                                      handlerPath,
-                                      Qt::CaseInsensitive))) {
-      if (QMessageBox::question(nullptr, QObject::tr("Change Handler?"),
-                                QObject::tr("A nxm handler from a different Mod Organizer installation has been "
-                                            "registered. Do you want to replace it? This is usually not necessary "
-                                            "unless the other installation is defective."),
-                                QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+    if (forceReg &&
+        (QString::compare(
+            QDir::toNativeSeparators(QCoreApplication::applicationFilePath()),
+            handlerPath, Qt::CaseInsensitive))) {
+      if (QMessageBox::question(
+              nullptr, QObject::tr("Change Handler?"),
+              QObject::tr("A nxm handler from a different Mod Organizer "
+                          "installation has been registered. Do you want to "
+                          "replace it? This is usually not necessary unless "
+                          "the other installation is defective."),
+              QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
         storage->registerProxy(QCoreApplication::applicationFilePath());
       }
     }
   } else if (!noRegister || forceReg) {
-    QMessageBox registerBox(QMessageBox::Question, QObject::tr("Register?"),
-                            QObject::tr("Mod Organizer is not set up to handle nxm links. Associate it with nxm links?"),
-                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
-    registerBox.button(QMessageBox::Save)->setText(QObject::tr("No, don't ask again"));
+    // no registration
+    QMessageBox registerBox(
+        QMessageBox::Question, QObject::tr("Register?"),
+        QObject::tr("Mod Organizer is not set up to handle nxm links. "
+                    "Associate it with nxm links?"),
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
+    registerBox.button(QMessageBox::Save)
+        ->setText(QObject::tr("No, don't ask again"));
     switch (registerBox.exec()) {
-      case QMessageBox::Yes: {
-          storage = registerExecutable(handlerPath);
-        } break;
-      case QMessageBox::Save: {
-          settings.setValue("noregister", true);
-        } break;
+    case QMessageBox::Yes: {
+      // base dir is either the global dir if it exists or the local application
+      // dir
+      storage = registerExecutable(baseDir, handlerPath);
+    } break;
+    case QMessageBox::Save: {
+      settings.setValue("noregister", true);
+    } break;
     }
   }
   return storage;
@@ -168,7 +196,7 @@ int main(int argc, char *argv[])
                                           "If you expected Mod Organizer to handle the link, "
                                           "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.\n"
                                           "If you have NMM installed, you can re-register it for nxm-links so it handles "
-                                          "links MO doesn't."));
+                                          "the links that MO doesn't."));
         return 1;
       }
     } else {
