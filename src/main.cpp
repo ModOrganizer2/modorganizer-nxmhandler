@@ -28,9 +28,9 @@ void handleLink(const QString &executable, const QString &link)
 HandlerStorage *registerExecutable(const QDir &storagePath,
                                    const QString &handlerPath) {
   HandlerStorage *storage = nullptr;
-  if (!handlerPath.isEmpty()) {
+  if (!handlerPath.isEmpty() && !handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
     // a foreign or global nxm handler, register ourself and use that handler as
-    // an option
+    // an option - if this is another nxmhandler we could run into problems so skip it
     storage = new HandlerStorage(storagePath.path());
     storage->registerHandler(handlerPath, false);
     storage->registerProxy(QCoreApplication::applicationFilePath());
