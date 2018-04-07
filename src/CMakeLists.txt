@@ -86,7 +86,7 @@ FIND_PROGRAM(WINDEPLOYQT_COMMAND windeployqt PATHS ${qt5bin} NO_DEFAULT_PATH)
 
 INSTALL(TARGETS nxmhandler
         RUNTIME DESTINATION bin)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/nxmhandler.pdb
+INSTALL(FILES $<TARGET_PDB_FILE:nxmhandler>
         DESTINATION pdb)
 
 # use windeployqt.exe to install all required libraries
