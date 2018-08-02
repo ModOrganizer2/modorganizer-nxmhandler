@@ -67,12 +67,14 @@ HandlerStorage *loadStorage(bool forceReg) {
   QSettings settings(baseDir.absoluteFilePath("nxmhandler.ini"),
                      QSettings::IniFormat);
   bool noRegister = settings.value("noregister", false).toBool();
-  if (globalStorage.exists("nxmhandler.ini")) {
+  if (globalStorage.exists("nxmhandler.ini") &&
+      handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
+      QFile::exists(handlerPath)) {
     // global configuration avaible - use it
     storage = new HandlerStorage(globalStorage.path());
-  } else if (handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
-             QFile::exists(handlerPath) &&
-             handlerBaseDir.exists("nxmhandler.ini")) {
+  } else if (handlerBaseDir.exists("nxmhandler.ini") &&
+             handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
+             QFile::exists(handlerPath)) {
     // a portable installation is registered to handle links, use its
     // configuration
     storage = new HandlerStorage(QFileInfo(handlerPath).absolutePath());
@@ -107,6 +109,9 @@ HandlerStorage *loadStorage(bool forceReg) {
     } break;
     case QMessageBox::Save: {
       settings.setValue("noregister", true);
+    } break;
+    case QMessageBox::No: {
+      settings.setValue("noregister", false);
     } break;
     }
   }
@@ -166,7 +171,10 @@ int main(int argc, char *argv[])
 
   QStringList args = app.arguments();
 
-  bool forceReg = (args.count() > 1) && args.at(1) == "forcereg";
+  // No arguments probably means the user explictly ran this application
+  // Set forcereg=True to allow them to register
+  bool forceReg = (args.count() == 1) ||
+                  ((args.count() > 1) && args.at(1) == "forcereg");
 
   boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
   if (storage.get() == nullptr) {
