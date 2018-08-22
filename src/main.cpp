@@ -28,11 +28,13 @@ void handleLink(const QString &executable, const QString &link)
 HandlerStorage *registerExecutable(const QDir &storagePath,
                                    const QString &handlerPath) {
   HandlerStorage *storage = nullptr;
-  if (!handlerPath.isEmpty() && !handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
+  QString strippedHandlerPath = HandlerStorage::stripCall(handlerPath);
+  QString parameters = HandlerStorage::extractParameters(handlerPath);
+  if (!strippedHandlerPath.isEmpty() && !strippedHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
     // a foreign or global nxm handler, register ourself and use that handler as
     // an option - if this is another nxmhandler we could run into problems so skip it
     storage = new HandlerStorage(storagePath.path());
-    storage->registerHandler(handlerPath, false);
+    storage->registerHandler(strippedHandlerPath, false, parameters);
     storage->registerProxy(QCoreApplication::applicationFilePath());
   } else {
     // no handler registered yet or the existing handler is invalid -> overwrite
@@ -105,7 +107,7 @@ HandlerStorage *loadStorage(bool forceReg) {
     case QMessageBox::Yes: {
       // base dir is either the global dir if it exists or the local application
       // dir
-      storage = registerExecutable(baseDir, handlerPath);
+      storage = registerExecutable(baseDir, handlerReg.value("shell/open/command/Default", QString()).toString());
     } break;
     case QMessageBox::Save: {
       settings.setValue("noregister", true);
@@ -194,9 +196,10 @@ int main(int argc, char *argv[])
       }
     } else if (args.at(1).startsWith("nxm://")) {
       NXMUrl url(args.at(1));
-      QString executable = storage->getHandler(url.game());
+      HandlerInfo foundInfo = storage->getHandler(url.game());
+      QString executable = foundInfo.executable;
       if (!executable.isEmpty()) {
-        handleLink(executable, args.at(1));
+        handleLink(executable, foundInfo.parameters +" "+ args.at(1));
         return 0;
       } else {
         QMessageBox::warning(nullptr, QObject::tr("No handler found"),
