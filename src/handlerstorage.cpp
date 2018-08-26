@@ -121,7 +121,7 @@ QStringList HandlerStorage::stripCall(const QString &call)
 
   bool in_quote = false;
   QString word;
-  for( QString::const_iterator iter = call.begin(); iter <= call.end(); iter++ ){
+  for( QString::const_iterator iter = call.begin(); iter != call.end(); iter++ ){
     // Handle quotes
     if (*iter == '"') {
       if (!in_quote) {
