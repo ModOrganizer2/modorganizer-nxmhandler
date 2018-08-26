@@ -85,7 +85,7 @@ void HandlerWindow::addBinaryDialog()
     }
 
     if (!executableKnown) {
-      QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << dialog.gameIDs().join(",") << dialog.executable());
+      QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << dialog.gameIDs().join(",") << dialog.executable() << dialog.arguments());
       newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
       ui->handlersWidget->insertTopLevelItem(0, newItem);
     }

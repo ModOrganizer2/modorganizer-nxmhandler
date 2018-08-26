@@ -116,17 +116,17 @@ HandlerStorage *loadStorage(bool forceReg) {
     registerBox.button(QMessageBox::Save)
         ->setText(QObject::tr("No, don't ask again"));
     switch (registerBox.exec()) {
-    case QMessageBox::Yes: {
-      // base dir is either the global dir if it exists or the local application
-      // dir
-      storage = registerExecutable(baseDir, handlerPath, handlerArgs);
-    } break;
-    case QMessageBox::Save: {
-      settings.setValue("noregister", true);
-    } break;
-    case QMessageBox::No: {
-      settings.setValue("noregister", false);
-    } break;
+      case QMessageBox::Yes: {
+        // base dir is either the global dir if it exists or the local application
+        // dir
+        storage = registerExecutable(baseDir, handlerPath, handlerArgs);
+      } break;
+      case QMessageBox::Save: {
+        settings.setValue("noregister", true);
+      } break;
+      case QMessageBox::No: {
+        settings.setValue("noregister", false);
+      } break;
     }
   }
   return storage;
