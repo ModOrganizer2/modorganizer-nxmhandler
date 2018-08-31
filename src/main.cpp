@@ -183,75 +183,81 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
-  QStringList args = app.arguments();
+  try {
+    QStringList args = app.arguments();
 
-  // No arguments probably means the user explictly ran this application
-  // Set forcereg=True to allow them to register
-  bool forceReg = (args.count() == 1) ||
-                  ((args.count() > 1) && args.at(1) == "forcereg");
+    // No arguments probably means the user explictly ran this application
+    // Set forcereg=True to allow them to register
+    bool forceReg = (args.count() == 1) ||
+                    ((args.count() > 1) && args.at(1) == "forcereg");
 
-  boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
-  if (storage.get() == nullptr) {
-    return 0;
-  }
+    boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
+    if (storage.get() == nullptr) {
+      return 0;
+    }
 
-  // Acceptable arguments
-  //
-  // nxmhandler.exe
-  //    forces registration and spawns handler window
-  //
-  // nxmhandler.exe reg|forcereg game1,game2,game3 C:/path/to/binary
-  //    reg:      register if noregister==false
-  //    forcereg: force registration
-  //
-  // nxmhandler.exe nxm://link/to/mod
-  //    forwards link to registered handler
+    // Acceptable arguments
+    //
+    // nxmhandler.exe
+    //    forces registration and spawns handler window
+    //
+    // nxmhandler.exe reg|forcereg game1,game2,game3 C:/path/to/binary
+    //    reg:      register if noregister==false
+    //    forcereg: force registration
+    //
+    // nxmhandler.exe nxm://link/to/mod
+    //    forwards link to registered handler
 
-  if (args.count() > 1) {
-    if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
-      if (args.count() == 4) {
-        storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
-        if (forceReg) {
-          applyChromeFix();
+    if (args.count() > 1) {
+      if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
+        if (args.count() == 4) {
+          storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
+          if (forceReg) {
+            applyChromeFix();
+          }
+          return 0;
+        } else {
+          QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
         }
-        return 0;
+      } else if (args.at(1).startsWith("nxm://")) {
+        NXMUrl url(args.at(1));
+        QStringList handlerVals = storage->getHandler(url.game());
+        QString executable = handlerVals.front();
+        handlerVals.pop_front();
+        QString arguments = handlerVals.join(" ");
+        if (!executable.isEmpty()) {
+          handleLink(executable, arguments, args.at(1));
+          return 0;
+        } else {
+          QMessageBox::warning(nullptr, QObject::tr("No handler found"),
+                               QObject::tr( "No application registered to handle this game.\n"
+                                            "If you expected Mod Organizer to handle the link, "
+                                            "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.\n"
+                                            "If you have NMM installed, you can re-register it for nxm-links so it handles "
+                                            "the links that MO doesn't."));
+          return 1;
+        }
       } else {
-        QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
-      }
-    } else if (args.at(1).startsWith("nxm://")) {
-      NXMUrl url(args.at(1));
-      QStringList handlerVals = storage->getHandler(url.game());
-      QString executable = handlerVals.front();
-      handlerVals.pop_front();
-      QString arguments = handlerVals.join(" ");
-      if (!executable.isEmpty()) {
-        handleLink(executable, arguments, args.at(1));
-        return 0;
-      } else {
-        QMessageBox::warning(nullptr, QObject::tr("No handler found"),
-                             QObject::tr( "No application registered to handle this game.\n"
-                                          "If you expected Mod Organizer to handle the link, "
-                                          "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.\n"
-                                          "If you have NMM installed, you can re-register it for nxm-links so it handles "
-                                          "the links that MO doesn't."));
+        QMessageBox::warning(nullptr, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
         return 1;
       }
+      return 0;
     } else {
-      QMessageBox::warning(nullptr, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
-      return 1;
-    }
-    return 0;
-  } else {
-    HandlerWindow win;
-    win.setHandlerStorage(storage.get());
-    QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
-    QStringList handlerVals = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default").toString());
-    QString handlerPath = handlerVals.front();
-    handlerVals.pop_front();
-    QString handerArgs = handlerVals.join(" ");
-    win.setPrimaryHandler(handlerPath);
-    win.show();
+      HandlerWindow win;
+      win.setHandlerStorage(storage.get());
+      QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
+      QStringList handlerVals = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default").toString());
+      QString handlerPath = handlerVals.front();
+      handlerVals.pop_front();
+      QString handerArgs = handlerVals.join(" ");
+      win.setPrimaryHandler(handlerPath);
+      win.show();
 
-    return app.exec();
+      return app.exec();
+    }
+  } catch (std::exception &e) {
+    QMessageBox::critical(nullptr, QApplication::applicationName(),
+                          QObject::tr("Uncaught exception:\n%1").arg(e.what()));
+    throw;
   }
 }
