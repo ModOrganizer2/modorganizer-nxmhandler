@@ -155,7 +155,9 @@ QStringList HandlerStorage::stripCall(const QString &call)
   }
 
   // Remove quotes around first word for hacky reasons
-  results.replace(0, results.front().remove(QRegularExpression("(^\"|\"$)")));
+  if (!results.isEmpty()) {
+    results.replace(0, results.front().remove(QRegularExpression("(^\"|\"$)")));
+  }
 
   while (results.length() < 2) {
     results.append(QString(""));
@@ -198,7 +200,7 @@ void HandlerStorage::loadStore()
   info.executable = handlerValues.front();
   handlerValues.pop_front();
   info.arguments = handlerValues.join(" ");
-  if (!info.executable.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
+  if (!info.executable.isEmpty() && !info.executable.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
     bool known = false;
     for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
       if ((iter->executable == info.executable) && (iter->arguments  == info.arguments)) {
