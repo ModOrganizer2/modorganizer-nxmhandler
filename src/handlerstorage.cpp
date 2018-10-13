@@ -86,6 +86,8 @@ void HandlerStorage::registerHandler(const QStringList &games, const QString &ex
 QStringList HandlerStorage::getHandler(const QString &game) const
 {
   QStringList results;
+
+  // look for an explictly registered handler
   for (const HandlerInfo &info : m_Handlers) {
     if (info.games.contains(game, Qt::CaseInsensitive)) {
       results << info.executable;
@@ -93,9 +95,23 @@ QStringList HandlerStorage::getHandler(const QString &game) const
       return results;
     }
   }
+
+  // if no registered handler, look for the first "other" entry
+  if (results.length() == 0) {
+    for (const HandlerInfo &info : m_Handlers) {
+      if (info.games.contains("other", Qt::CaseInsensitive)) {
+        results << info.executable;
+        results << info.arguments;
+        return results;
+      }
+    }
+  }
+
+  // provide empty results if no handler was found
   while (results.length() < 2) {
     results << "";
   }
+
   return results;
 }
 
