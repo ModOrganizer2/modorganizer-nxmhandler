@@ -191,7 +191,10 @@ void HandlerStorage::loadStore()
     settings.setArrayIndex(i);
     HandlerInfo info;
     info.ID = i;
-    info.games = settings.value("games").toString().split(",");
+    QString gameList = settings.value("games").toString();
+    if (!gameList.isEmpty()) {
+      info.games = gameList.split(",");
+    }
     info.executable = settings.value("executable").toString();
     info.arguments = settings.value("arguments").toString();
     if (QFile::exists(info.executable)) {
