@@ -41,6 +41,11 @@ QString AddBinaryDialog::executable()
   return QDir::toNativeSeparators(ui->binaryEdit->text());
 }
 
+QString AddBinaryDialog::arguments()
+{
+  return ui->argumentsEdit->text();
+}
+
 void AddBinaryDialog::on_browseButton_clicked()
 {
   ui->binaryEdit->setText(QFileDialog::getOpenFileName(this, tr("Select Executable"), QString(),

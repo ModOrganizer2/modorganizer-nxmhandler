@@ -43,7 +43,7 @@
        <bool>false</bool>
       </property>
       <attribute name="headerDefaultSectionSize">
-       <number>120</number>
+       <number>150</number>
       </attribute>
       <column>
        <property name="text">
@@ -53,6 +53,11 @@
       <column>
        <property name="text">
         <string>Binary</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Arguments</string>
        </property>
       </column>
      </widget>
@@ -110,7 +115,7 @@
   </widget>
   <action name="actionRemove">
    <property name="icon">
-    <iconset resource="../organizer/resources.qrc">
+    <iconset>
      <normaloff>:/MO/gui/remove</normaloff>:/MO/gui/remove</iconset>
    </property>
    <property name="text">
@@ -125,7 +130,7 @@
   </action>
   <action name="actionAdd">
    <property name="icon">
-    <iconset resource="../organizer/resources.qrc">
+    <iconset>
      <normaloff>:/MO/gui/add</normaloff>:/MO/gui/add</iconset>
    </property>
    <property name="text">
@@ -143,9 +148,7 @@
    <header location="global">sortabletreewidget.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../organizer/resources.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>closeButton</sender>

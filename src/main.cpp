@@ -9,6 +9,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
 
 
 #pragma comment(linker, "/manifestDependency:\"name='dlls' processorArchitecture='x86' version='1.0.0.0' type='win32' \"")
@@ -17,22 +18,33 @@
 using MOBase::ToWString;
 
 
-void handleLink(const QString &executable, const QString &link)
+void handleLink(const QString &executable, const QString &arguments, const QString &link)
 {
-  ::ShellExecute(nullptr, TEXT("open"), ToWString(executable).c_str(),
-                 ToWString(link).c_str(),
-                 ToWString(QFileInfo(executable).absolutePath()).c_str(),
+  QString quotedExecutable(executable);
+  if (!quotedExecutable.contains(QRegularExpression("^\".*\"$"))) {
+    quotedExecutable = '"' + quotedExecutable + '"';
+  }
+
+  QString quotedLink(link);
+  if (!quotedLink.contains(QRegularExpression("^\".*\"$"))) {
+    quotedLink = '"' + quotedLink + '"';
+  }
+
+  ::ShellExecute(nullptr, TEXT("open"), ToWString(quotedExecutable).c_str(),
+                 ToWString(arguments + " " + quotedLink).c_str(),
+                 ToWString(QFileInfo(quotedExecutable).absolutePath()).c_str(),
                  SW_SHOWNORMAL);
 }
 
 HandlerStorage *registerExecutable(const QDir &storagePath,
-                                   const QString &handlerPath) {
+                                   const QString &handlerPath,
+                                   const QString &handlerArgs) {
   HandlerStorage *storage = nullptr;
   if (!handlerPath.isEmpty() && !handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
     // a foreign or global nxm handler, register ourself and use that handler as
     // an option - if this is another nxmhandler we could run into problems so skip it
     storage = new HandlerStorage(storagePath.path());
-    storage->registerHandler(handlerPath, false);
+    storage->registerHandler(handlerPath, handlerArgs, false);
     storage->registerProxy(QCoreApplication::applicationFilePath());
   } else {
     // no handler registered yet or the existing handler is invalid -> overwrite
@@ -59,8 +71,10 @@ HandlerStorage *loadStorage(bool forceReg) {
   }
   QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
                        QSettings::NativeFormat);
-  QString handlerPath = HandlerStorage::stripCall(
-      handlerReg.value("shell/open/command/Default", QString()).toString());
+  QStringList handlerVals = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default").toString());
+  QString handlerPath = handlerVals.front();
+  handlerVals.pop_front();
+  QString handlerArgs = handlerVals.join(" ");
 
   QDir handlerBaseDir = QFileInfo(handlerPath).absoluteDir();
 
@@ -102,17 +116,17 @@ HandlerStorage *loadStorage(bool forceReg) {
     registerBox.button(QMessageBox::Save)
         ->setText(QObject::tr("No, don't ask again"));
     switch (registerBox.exec()) {
-    case QMessageBox::Yes: {
-      // base dir is either the global dir if it exists or the local application
-      // dir
-      storage = registerExecutable(baseDir, handlerPath);
-    } break;
-    case QMessageBox::Save: {
-      settings.setValue("noregister", true);
-    } break;
-    case QMessageBox::No: {
-      settings.setValue("noregister", false);
-    } break;
+      case QMessageBox::Yes: {
+        // base dir is either the global dir if it exists or the local application
+        // dir
+        storage = registerExecutable(baseDir, handlerPath, handlerArgs);
+      } break;
+      case QMessageBox::Save: {
+        settings.setValue("noregister", true);
+      } break;
+      case QMessageBox::No: {
+        settings.setValue("noregister", false);
+      } break;
     }
   }
   return storage;
@@ -169,57 +183,81 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
-  QStringList args = app.arguments();
+  try {
+    QStringList args = app.arguments();
 
-  // No arguments probably means the user explictly ran this application
-  // Set forcereg=True to allow them to register
-  bool forceReg = (args.count() == 1) ||
-                  ((args.count() > 1) && args.at(1) == "forcereg");
+    // No arguments probably means the user explictly ran this application
+    // Set forcereg=True to allow them to register
+    bool forceReg = (args.count() == 1) ||
+                    ((args.count() > 1) && args.at(1) == "forcereg");
 
-  boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
-  if (storage.get() == nullptr) {
-    return 0;
-  }
+    boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
+    if (storage.get() == nullptr) {
+      return 0;
+    }
 
-  if (args.count() > 1) {
-    if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
-      if (args.count() == 4) {
-        storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), true, forceReg);
-        if (forceReg) {
-          applyChromeFix();
+    // Acceptable arguments
+    //
+    // nxmhandler.exe
+    //    forces registration and spawns handler window
+    //
+    // nxmhandler.exe reg|forcereg game1,game2,game3 C:/path/to/binary
+    //    reg:      register if noregister==false
+    //    forcereg: force registration
+    //
+    // nxmhandler.exe nxm://link/to/mod
+    //    forwards link to registered handler
+
+    if (args.count() > 1) {
+      if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
+        if (args.count() == 4) {
+          storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
+          if (forceReg) {
+            applyChromeFix();
+          }
+          return 0;
+        } else {
+          QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
         }
-        return 0;
+      } else if (args.at(1).startsWith("nxm://")) {
+        NXMUrl url(args.at(1));
+        QStringList handlerVals = storage->getHandler(url.game());
+        QString executable = handlerVals.front();
+        handlerVals.pop_front();
+        QString arguments = handlerVals.join(" ");
+        if (!executable.isEmpty()) {
+          handleLink(executable, arguments, args.at(1));
+          return 0;
+        } else {
+          QMessageBox::warning(nullptr, QObject::tr("No handler found"),
+                               QObject::tr( "No application registered to handle this game (%1).\n"
+                                            "If you expected Mod Organizer to handle the link, "
+                                            "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.\n"
+                                            "If you have NMM installed, you can re-register it for nxm-links so it handles "
+                                            "the links that MO doesn't.").arg(url.game()));
+          return 1;
+        }
       } else {
-        QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid number of parameters"));
-      }
-    } else if (args.at(1).startsWith("nxm://")) {
-      NXMUrl url(args.at(1));
-      QString executable = storage->getHandler(url.game());
-      if (!executable.isEmpty()) {
-        handleLink(executable, args.at(1));
-        return 0;
-      } else {
-        QMessageBox::warning(nullptr, QObject::tr("No handler found"),
-                             QObject::tr( "No application registered to handle this game.\n"
-                                          "If you expected Mod Organizer to handle the link, "
-                                          "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.\n"
-                                          "If you have NMM installed, you can re-register it for nxm-links so it handles "
-                                          "the links that MO doesn't."));
+        QMessageBox::warning(nullptr, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
         return 1;
       }
+      return 0;
     } else {
-      QMessageBox::warning(nullptr, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
-      return 1;
-    }
-    return 0;
-  } else {
-    HandlerWindow win;
-    win.setHandlerStorage(storage.get());
-    QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
-    QString handlerPath = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default", QString()).toString());
-    win.setPrimaryHandler(handlerPath);
-    win.show();
+      HandlerWindow win;
+      win.setHandlerStorage(storage.get());
+      QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\", QSettings::NativeFormat);
+      QStringList handlerVals = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default").toString());
+      QString handlerPath = handlerVals.front();
+      handlerVals.pop_front();
+      QString handerArgs = handlerVals.join(" ");
+      win.setPrimaryHandler(handlerPath);
+      win.show();
 
-    return app.exec();
+      return app.exec();
+    }
+  } catch (std::exception &e) {
+    QMessageBox::critical(nullptr, QApplication::applicationName(),
+                          QObject::tr("Uncaught exception:\n%1").arg(e.what()));
+    throw;
   }
 }

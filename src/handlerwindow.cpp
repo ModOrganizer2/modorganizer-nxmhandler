@@ -7,6 +7,12 @@
 #include <QKeyEvent>
 #include <QDir>
 
+enum {
+ COL_GAMES,
+ COL_BINARY,
+ COL_ARGUMENTS
+};
+
 
 HandlerWindow::HandlerWindow(QWidget *parent)
   : QMainWindow(parent), ui(new Ui::HandlerWindow)
@@ -34,7 +40,6 @@ void HandlerWindow::setPrimaryHandler(const QString &handlerPath)
   }
 }
 
-
 void HandlerWindow::setHandlerStorage(HandlerStorage *storage)
 {
   m_Storage = storage;
@@ -42,11 +47,12 @@ void HandlerWindow::setHandlerStorage(HandlerStorage *storage)
   ui->handlersWidget->clear();
   auto list = storage->handlers();
   for (auto iter = list.begin(); iter != list.end(); ++iter) {
-    QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << iter->games.join(",") << QDir::toNativeSeparators(iter->executable));
+    QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << iter->games.join(",") << QDir::toNativeSeparators(iter->executable) << iter->arguments);
 
     newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
     ui->handlersWidget->addTopLevelItem(newItem);
   }
+  ui->handlersWidget->resizeColumnToContents(COL_BINARY); 
 }
 
 void HandlerWindow::closeEvent(QCloseEvent *event)
@@ -54,7 +60,7 @@ void HandlerWindow::closeEvent(QCloseEvent *event)
   m_Storage->clear();
   for (int i = 0; i < ui->handlersWidget->topLevelItemCount(); ++i) {
     QTreeWidgetItem *item = ui->handlersWidget->topLevelItem(i);
-    m_Storage->registerHandler(item->text(0).split(","), item->text(1), false, false);
+    m_Storage->registerHandler(item->text(0).split(","), item->text(1), item->text(2), false, false);
   }
   QMainWindow::closeEvent(event);
 }
@@ -66,26 +72,31 @@ void HandlerWindow::addBinaryDialog()
     bool executableKnown = false;
     for (int i = 0; i < ui->handlersWidget->topLevelItemCount(); ++i) {
       QTreeWidgetItem *iterItem = ui->handlersWidget->topLevelItem(i);
-      if (QFileInfo(iterItem->text(1)) == QFileInfo(dialog.executable())) {
-        QStringList games = iterItem->text(0).split(",");
+      if (QFileInfo(iterItem->text(COL_BINARY)) == QFileInfo(dialog.executable())) {
+        QStringList games = iterItem->text(COL_GAMES).split(",");
         games.append(dialog.gameIDs());
         games = games.toSet().toList();
-        iterItem->setText(0, games.join(","));
+        iterItem->setText(COL_GAMES, games.join(","));
+        if (iterItem->text(COL_ARGUMENTS).compare(dialog.arguments(), Qt::CaseInsensitive) != 0) {
+          iterItem->setText(COL_ARGUMENTS, dialog.arguments());
+        }
         executableKnown = true;
       }
     }
 
     if (!executableKnown) {
-      QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << dialog.gameIDs().join(",") << dialog.executable());
+      QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << dialog.gameIDs().join(",") << dialog.executable() << dialog.arguments());
       newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
       ui->handlersWidget->insertTopLevelItem(0, newItem);
     }
+    ui->handlersWidget->resizeColumnToContents(COL_BINARY); 
   }
 }
 
 void HandlerWindow::removeBinary() {
   ui->handlersWidget->takeTopLevelItem(
       ui->handlersWidget->currentIndex().row());
+  ui->handlersWidget->resizeColumnToContents(COL_BINARY); 
 }
 
 void HandlerWindow::on_handlersWidget_customContextMenuRequested(const QPoint &pos)

@@ -17,6 +17,7 @@ public:
   ~AddBinaryDialog();
   QStringList gameIDs();
   QString executable();
+  QString arguments();
 private slots:
   void on_browseButton_clicked();
 private:
