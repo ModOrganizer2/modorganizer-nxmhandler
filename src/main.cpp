@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     }
 
     // Log the arguments
-    qDebug(qUtf8Printable(args.join(" ")));
+    qDebug(qUtf8Printable( "\"" + args.join("\" \"") + "\""));
     
     // No other logs, close the log
     NxmHandler::LoggerDeinit();
