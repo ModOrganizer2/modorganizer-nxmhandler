@@ -9,12 +9,14 @@ SET(nxmhandler_SRCS
     handlerwindow.cpp
     addbinarydialog.cpp
     handlerstorage.cpp
+    logger.cpp
   )
 
 SET(nxmhandler_HDRS
     handlerwindow.h
     addbinarydialog.h
     handlerstorage.h
+    logger.h
   )
 
 SET(nxmhandler_FORMS

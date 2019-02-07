@@ -10,12 +10,35 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QDateTime>
+#include "logger.h"
 
 
 #pragma comment(linker, "/manifestDependency:\"name='dlls' processorArchitecture='x86' version='1.0.0.0' type='win32' \"")
 
-
 using MOBase::ToWString;
+
+static QString g_LogFileName = "";
+
+void logHandler(QtMsgType type, const QMessageLogContext &context, const QString &message)
+{
+  if (g_LogFileName.isEmpty()) {
+    return;
+  }
+
+  QFile file(g_LogFileName);
+
+  // Prevent the log from growing infinitely
+  if (file.size() > 10 * 1024 * 1024) {
+    if (!file.open(QIODevice::WriteOnly)) {
+      return;
+    }
+  } else if (!file.open(QIODevice::Append)) {
+    return;
+  }
+
+  file.write(qUtf8Printable(QString("[%1] %2\n").arg(QDateTime::currentDateTime().toString()).arg(message)));
+}
 
 
 void handleLink(const QString &executable, const QString &arguments, const QString &link)
@@ -69,6 +92,7 @@ HandlerStorage *loadStorage(bool forceReg) {
   } else {
     baseDir = QDir(qApp->applicationDirPath());
   }
+  NxmHandler::LoggerInit(baseDir.filePath("nxmhandler.log"));
   QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
                        QSettings::NativeFormat);
   QStringList handlerVals = HandlerStorage::stripCall(handlerReg.value("shell/open/command/Default").toString());
@@ -195,6 +219,12 @@ int main(int argc, char *argv[])
     if (storage.get() == nullptr) {
       return 0;
     }
+
+    // Log the arguments
+    qDebug(qUtf8Printable(args.join(" ")));
+    
+    // No other logs, close the log
+    NxmHandler::LoggerDeinit();
 
     // Acceptable arguments
     //
