@@ -19,12 +19,14 @@ TEMPLATE = app
 SOURCES += main.cpp \
     handlerwindow.cpp \
     addbinarydialog.cpp \
-    handlerstorage.cpp
+    handlerstorage.cpp \
+    logger.cpp
 
 HEADERS  += \
     handlerwindow.h \
     addbinarydialog.h \
-    handlerstorage.h
+    handlerstorage.h \
+    logger.h
 
 FORMS    += \
     handlerwindow.ui \

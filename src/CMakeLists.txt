@@ -9,12 +9,14 @@ SET(nxmhandler_SRCS
     handlerwindow.cpp
     addbinarydialog.cpp
     handlerstorage.cpp
+    logger.cpp
   )
 
 SET(nxmhandler_HDRS
     handlerwindow.h
     addbinarydialog.h
     handlerstorage.h
+    logger.h
   )
 
 SET(nxmhandler_FORMS
@@ -44,7 +46,7 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 ADD_DEFINITIONS(-D_UNICODE -DUNICODE -DNOMINMAX)
 
-SET(default_project_path "${CMAKE_SOURCE_DIR}/..")
+SET(default_project_path "${DEPENDENCIES_DIR}/modorganizer_super")
 GET_FILENAME_COMPONENT(${default_project_path} ${default_project_path} REALPATH)
 
 SET(project_path "${default_project_path}" CACHE PATH "path to the other mo projects")

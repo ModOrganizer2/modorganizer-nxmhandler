@@ -235,6 +235,7 @@ void HandlerStorage::loadStore()
 void HandlerStorage::saveStore()
 {
   QSettings settings(m_SettingsPath, QSettings::IniFormat);
+  settings.remove("handlers");
   settings.beginWriteArray("handlers", static_cast<int>(m_Handlers.size()));
   int i = 0;
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
