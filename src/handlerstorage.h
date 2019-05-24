@@ -30,7 +30,7 @@ public:
   /// register handler for specified games
   void registerHandler(const QStringList &games, const QString &executable, const QString &arguments, bool prepend, bool rereg);
   QStringList getHandler(const QString &game) const;
-  std::vector<std::pair<QString, QString> > knownGames() const;
+  std::vector<std::tuple<QString, QString, QString>> knownGames() const;
   std::list<HandlerInfo> handlers() const { return m_Handlers; }
 
   static QStringList stripCall(const QString &call);

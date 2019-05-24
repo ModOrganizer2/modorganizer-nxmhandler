@@ -13,7 +13,7 @@ class AddBinaryDialog : public QDialog
   Q_OBJECT
   
 public:
-  explicit AddBinaryDialog(const std::vector<std::pair<QString, QString> > &handlers, QWidget *parent = 0);
+  explicit AddBinaryDialog(const std::vector<std::tuple<QString, QString, QString>> &handlers, QWidget *parent = 0);
   ~AddBinaryDialog();
   QStringList gameIDs();
   QString executable();
