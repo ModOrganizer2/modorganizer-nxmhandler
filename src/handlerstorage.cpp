@@ -85,19 +85,23 @@ void HandlerStorage::registerHandler(const QStringList &games, const QString &ex
 
 QStringList HandlerStorage::getHandler(const QString &game) const
 {
+  QString gameKey;
   QStringList results;
 
   auto games = knownGames();
+  for (auto known : games) {
+      if (game.compare(std::get<1>(known), Qt::CaseInsensitive) == 0 ||
+          game.compare(std::get<2>(known), Qt::CaseInsensitive) == 0) {
+          gameKey = std::get<1>(known);
+      }
+  }
   // look for an explictly registered handler
   for (const HandlerInfo &info : m_Handlers) {
-    for (auto game : info.games) {
-        for (auto known : games) {
-            if (game.compare(std::get<1>(known), Qt::CaseInsensitive) == 0 ||
-                game.compare(std::get<2>(known), Qt::CaseInsensitive) == 0) {
-                results << info.executable;
-                results << info.arguments;
-                return results;
-            }
+    for (auto handler : info.games) {
+        if (gameKey.compare(handler, Qt::CaseInsensitive) == 0) {
+            results << info.executable;
+            results << info.arguments;
+            return results;
         }
     }
   }
