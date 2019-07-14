@@ -98,7 +98,8 @@ QStringList HandlerStorage::getHandler(const QString &game) const
   // look for an explictly registered handler
   for (const HandlerInfo &info : m_Handlers) {
     for (auto handler : info.games) {
-        if (gameKey.compare(handler, Qt::CaseInsensitive) == 0) {
+        if (game.compare(handler, Qt::CaseInsensitive) == 0 ||
+            gameKey.compare(handler, Qt::CaseInsensitive) == 0) {
             results << info.executable;
             results << info.arguments;
             return results;
