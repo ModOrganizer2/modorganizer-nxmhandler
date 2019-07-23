@@ -39,7 +39,7 @@ void HandlerStorage::registerHandler(const QString &executable, const QString &a
 {
   QStringList games;
   for (const auto &game : this->knownGames()) {
-    games.append(game.second);
+    games.append(std::get<1>(game));
   }
   registerHandler(games, executable, arguments, prepend, false);
 }
@@ -85,14 +85,25 @@ void HandlerStorage::registerHandler(const QStringList &games, const QString &ex
 
 QStringList HandlerStorage::getHandler(const QString &game) const
 {
+  QString gameKey;
   QStringList results;
 
+  auto games = knownGames();
+  for (auto known : games) {
+      if (game.compare(std::get<1>(known), Qt::CaseInsensitive) == 0 ||
+          game.compare(std::get<2>(known), Qt::CaseInsensitive) == 0) {
+          gameKey = std::get<1>(known);
+      }
+  }
   // look for an explictly registered handler
   for (const HandlerInfo &info : m_Handlers) {
-    if (info.games.contains(game, Qt::CaseInsensitive)) {
-      results << info.executable;
-      results << info.arguments;
-      return results;
+    for (auto handler : info.games) {
+        if (game.compare(handler, Qt::CaseInsensitive) == 0 ||
+            gameKey.compare(handler, Qt::CaseInsensitive) == 0) {
+            results << info.executable;
+            results << info.arguments;
+            return results;
+        }
     }
   }
 
@@ -115,17 +126,18 @@ QStringList HandlerStorage::getHandler(const QString &game) const
   return results;
 }
 
-std::vector<std::pair<QString, QString>> HandlerStorage::knownGames() const
+std::vector<std::tuple<QString, QString, QString>> HandlerStorage::knownGames() const
 {
   return {
-    std::make_pair<QString, QString>("Morrowind", "morrowind"),
-    std::make_pair<QString, QString>("Oblivion", "oblivion"),
-    std::make_pair<QString, QString>("Fallout 3", "fallout3"),
-    std::make_pair<QString, QString>("Fallout 4", "fallout4"),
-    std::make_pair<QString, QString>("Fallout NV", "falloutnv"),
-    std::make_pair<QString, QString>("Skyrim", "skyrim"),
-    std::make_pair<QString, QString>("SkyrimSE", "skyrimse"),
-    std::make_pair<QString, QString>("Other", "other")
+    std::make_tuple<QString, QString, QString>("Morrowind", "morrowind", "morrowind"),
+    std::make_tuple<QString, QString, QString>("Oblivion", "oblivion", "oblivion"),
+    std::make_tuple<QString, QString, QString>("Fallout 3", "fallout3", "fallout3"),
+    std::make_tuple<QString, QString, QString>("Fallout 4", "fallout4", "fallout4"),
+    std::make_tuple<QString, QString, QString>("Fallout NV", "falloutnv", "newvegas"),
+    std::make_tuple<QString, QString, QString>("Skyrim", "skyrim", "skyrim"),
+    std::make_tuple<QString, QString, QString>("SkyrimSE", "skyrimse", "skyrimspecialedition"),
+    std::make_tuple<QString, QString, QString>("Enderal", "enderal", "enderal"),
+    std::make_tuple<QString, QString, QString>("Other", "other", "other")
   };
 }
 
@@ -213,7 +225,7 @@ void HandlerStorage::loadStore()
   auto games = knownGames();
   QStringList ids;
   for (auto iter = games.begin(); iter != games.end(); ++iter) {
-    ids.append(iter->second);
+    ids.append(std::get<1>(*iter));
   }
   info.games = QStringList() << ids;
   info.executable = handlerValues.front();

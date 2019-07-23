@@ -3,14 +3,14 @@
 #include <QFileDialog>
 
 
-AddBinaryDialog::AddBinaryDialog(const std::vector<std::pair<QString, QString> > &games, QWidget *parent)
+AddBinaryDialog::AddBinaryDialog(const std::vector<std::tuple<QString, QString, QString>> &games, QWidget *parent)
   : QDialog(parent)
   , ui(new Ui::AddBinaryDialog)
 {
   ui->setupUi(this);
 
   for (auto iter = games.begin(); iter != games.end(); ++iter) {
-    addGame(iter->first, iter->second);
+    addGame(std::get<0>(*iter), std::get<1>(*iter));
   }
 }
 
