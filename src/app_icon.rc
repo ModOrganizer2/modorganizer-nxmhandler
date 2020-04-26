@@ -1,7 +1,0 @@
-#include "Winver.h"
-
-#ifdef SCONS_BUILD
-IDI_ICON1               ICON    DISCARDABLE     "mo_icon.ico"
-#else
-IDI_ICON1               ICON    DISCARDABLE     "..\organizer\mo_icon.ico"
-#endif
