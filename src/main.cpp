@@ -203,8 +203,25 @@ static void applyChromeFix()
   }
 }
 
+void setupPath()
+{
+  static const int buffSize = 4096;
+    
+  std::wstring oldPath;
+  oldPath.resize(buffSize);
+  oldPath.resize(::GetEnvironmentVariableW(L"PATH", oldPath.data(), oldPath.size()));
+
+  std::wstring newPath(ToWString(QDir::toNativeSeparators(QDir::currentPath())));
+  newPath += L"\\dlls;";
+  newPath += oldPath.data();
+  ::SetEnvironmentVariableW(L"PATH", newPath.c_str());
+}
+
 int main(int argc, char *argv[])
 {
+  // This must be set before the application constructor
+  setupPath();
+
   QApplication app(argc, argv);
 
   try {
