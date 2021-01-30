@@ -161,7 +161,7 @@ QStringList HandlerStorage::stripCall(const QString &call)
     }
 
     // Space outside a quote means the end of a word
-    if (*iter == " " && !in_quote) {
+    if (*iter == ' ' && !in_quote) {
       // Don't process stuff like %1, %2, etc.
       if (!word.contains(invalid_arguments)) {
         results << word;
