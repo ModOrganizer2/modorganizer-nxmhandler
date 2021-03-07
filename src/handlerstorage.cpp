@@ -137,6 +137,7 @@ std::vector<std::tuple<QString, QString, QString>> HandlerStorage::knownGames() 
     std::make_tuple<QString, QString, QString>("Skyrim", "skyrim", "skyrim"),
     std::make_tuple<QString, QString, QString>("SkyrimSE", "skyrimse", "skyrimspecialedition"),
     std::make_tuple<QString, QString, QString>("Enderal", "enderal", "enderal"),
+    std::make_tuple<QString, QString, QString>("EnderalSE", "enderalse", "enderalspecialedition"),
     std::make_tuple<QString, QString, QString>("Other", "other", "other")
   };
 }
