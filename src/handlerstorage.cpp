@@ -4,7 +4,6 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QRegularExpression>
-#include <boost/assign.hpp>
 
 static const QRegularExpression invalid_arguments("\"?%[0-9]+\"?");
 
