@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QAbstractButton>
 #include <QDesktopServices>
-#include <boost/scoped_ptr.hpp>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
@@ -40,7 +39,6 @@ void logHandler(QtMsgType type, const QMessageLogContext &context, const QString
   file.write(qUtf8Printable(QString("[%1] %2\n").arg(QDateTime::currentDateTime().toString()).arg(message)));
 }
 
-
 void handleLink(const QString &executable, const QString &arguments, const QString &link)
 {
   QString quotedExecutable(executable);
@@ -61,7 +59,8 @@ void handleLink(const QString &executable, const QString &arguments, const QStri
 
 HandlerStorage *registerExecutable(const QDir &storagePath,
                                    const QString &handlerPath,
-                                   const QString &handlerArgs) {
+                                   const QString &handlerArgs)
+{
   HandlerStorage *storage = nullptr;
   if (!handlerPath.isEmpty() && !handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
     // a foreign or global nxm handler, register ourself and use that handler as
@@ -80,7 +79,8 @@ HandlerStorage *registerExecutable(const QDir &storagePath,
 // ensure a nxmhandler.exe is registered to handle nxm-links, then load the
 // handler storage for that registered instance
 // (even if it's different from the one actually being run)
-HandlerStorage *loadStorage(bool forceReg) {
+HandlerStorage *loadStorage(bool forceReg)
+{
   HandlerStorage *storage = nullptr;
 
   QDir globalStorage(
@@ -215,14 +215,14 @@ int main(int argc, char *argv[])
     bool forceReg = (args.count() == 1) ||
                     ((args.count() > 1) && args.at(1) == "forcereg");
 
-    boost::scoped_ptr<HandlerStorage> storage(loadStorage(forceReg));
+    std::unique_ptr<HandlerStorage> storage(loadStorage(forceReg));
     if (storage.get() == nullptr) {
       return 0;
     }
 
     // Log the arguments
     qDebug(qUtf8Printable( "\"" + args.join("\" \"") + "\""));
-    
+
     // No other logs, close the log
     NxmHandler::LoggerDeinit();
 
