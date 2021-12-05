@@ -75,7 +75,7 @@ void HandlerWindow::addBinaryDialog()
       if (QFileInfo(iterItem->text(COL_BINARY)) == QFileInfo(dialog.executable())) {
         QStringList games = iterItem->text(COL_GAMES).split(",");
         games.append(dialog.gameIDs());
-        games = games.toSet().toList();
+        games.removeDuplicates();
         iterItem->setText(COL_GAMES, games.join(","));
         if (iterItem->text(COL_ARGUMENTS).compare(dialog.arguments(), Qt::CaseInsensitive) != 0) {
           iterItem->setText(COL_ARGUMENTS, dialog.arguments());

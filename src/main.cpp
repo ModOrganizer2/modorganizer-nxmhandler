@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 #include <QDateTime>
+#include <QStandardPaths>
 #include "logger.h"
 
 
@@ -84,7 +85,7 @@ HandlerStorage *loadStorage(bool forceReg)
   HandlerStorage *storage = nullptr;
 
   QDir globalStorage(
-      QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   globalStorage.cd("../ModOrganizer");
   QDir baseDir;
   if (globalStorage.exists()) {
@@ -158,7 +159,7 @@ HandlerStorage *loadStorage(bool forceReg)
 
 static void applyChromeFix()
 {
-  QString dataPath = QDir::fromNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+  QString dataPath = QDir::fromNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
   QString fileName = QDir(dataPath + "/../google/chrome/user data/local state").canonicalPath();
 
   QFile chromeLocalState(fileName);
@@ -241,7 +242,7 @@ int main(int argc, char *argv[])
     if (args.count() > 1) {
       if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
         if (args.count() == 4) {
-          storage->registerHandler(args.at(2).split(",", QString::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
+          storage->registerHandler(args.at(2).split(",", Qt::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
           if (forceReg) {
             applyChromeFix();
           }

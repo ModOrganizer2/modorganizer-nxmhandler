@@ -128,60 +128,60 @@ Use this if you moved Mod Organizer or if you uninstalled the Mod Organizer inst
 <context>
     <name>QObject</name>
     <message>
-        <location filename="main.cpp" line="124"/>
+        <location filename="main.cpp" line="125"/>
         <source>Change Handler?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="125"/>
+        <location filename="main.cpp" line="126"/>
         <source>A nxm handler from a different Mod Organizer installation has been registered. Do you want to replace it? This is usually not necessary unless the other installation is defective.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="136"/>
+        <location filename="main.cpp" line="137"/>
         <source>Register?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="137"/>
+        <location filename="main.cpp" line="138"/>
         <source>Mod Organizer is not set up to handle nxm links. Associate it with nxm links?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="141"/>
+        <location filename="main.cpp" line="142"/>
         <source>No, don&apos;t ask again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="250"/>
+        <location filename="main.cpp" line="251"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="250"/>
-        <location filename="main.cpp" line="271"/>
+        <location filename="main.cpp" line="251"/>
+        <location filename="main.cpp" line="272"/>
         <source>Invalid number of parameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="262"/>
+        <location filename="main.cpp" line="263"/>
         <source>No handler found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="263"/>
+        <location filename="main.cpp" line="264"/>
         <source>No application registered to handle this game (%1).
 If you expected Mod Organizer to handle the link, you have to go to Settings-&gt;Nexus and click the &quot;Associate with ... links&quot;-button.
 If you have NMM installed, you can re-register it for nxm-links so it handles the links that MO doesn&apos;t.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="271"/>
+        <location filename="main.cpp" line="272"/>
         <source>Invalid Arguments</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="290"/>
+        <location filename="main.cpp" line="291"/>
         <source>Uncaught exception:
 %1</source>
         <translation type="unfinished"></translation>
