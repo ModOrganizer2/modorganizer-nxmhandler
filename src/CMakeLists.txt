@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
-if(DEFINED DEPENDENCIES_DIR)
-	include(${DEPENDENCIES_DIR}/modorganizer_super/cmake_common/src.cmake)
-else()
-	include(../../cmake_common/src.cmake)
-endif()
-deploy_qt(BINARIES nxmhandler.exe NOPLUGINS)
+
+add_executable(nxmhandler)
+mo2_configure_executable(nxmhandler
+	WARNINGS OFF
+	PRIVATE_DEPENDS uibase)
+mo2_install_target(nxmhandler)
+
+mo2_deploy_qt(BINARIES nxmhandler.exe NOPLUGINS)
