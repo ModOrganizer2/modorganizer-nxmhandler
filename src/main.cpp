@@ -277,8 +277,6 @@ int main(int argc, char *argv[])
           QUrlQuery query(url.query());
           QStringList handlerVals = storage->getHandler(url.host());
           QString executable = handlerVals.front();
-          handlerVals.pop_front();
-          QString arguments = handlerVals.join(" ");
           if (!executable.isEmpty()) {
               handleLink(executable, "download", QUrl::fromPercentEncoding(query.queryItemValue("url").toUtf8()));
               return 0;
