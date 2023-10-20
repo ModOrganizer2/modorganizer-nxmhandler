@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
           handlerVals.pop_front();
           QString arguments = handlerVals.join(" ");
           if (!executable.isEmpty()) {
-              handleLink(executable, "download", query.queryItemValue("url"));
+              handleLink(executable, "download", QUrl::fromPercentEncoding(query.queryItemValue("url").toUtf8()));
               return 0;
           }
           else {
