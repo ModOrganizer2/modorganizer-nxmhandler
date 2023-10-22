@@ -11,6 +11,8 @@
 #include <QRegularExpression>
 #include <QDateTime>
 #include <QStandardPaths>
+#include <QUrl>
+#include <QUrlQuery>
 #include "logger.h"
 
 
@@ -183,7 +185,7 @@ static void applyChromeFix()
     // toObject returns empty object if the key doesn't exist. Therefore if excluded_schemes exists, protocol_handler existed as well
     if (handlers.contains("excluded_schemes")) {
       QJsonObject schemes = handlers["excluded_schemes"].toObject();
-      if (schemes["nxm"].toBool(true)) {
+      if (schemes["nxm"].toBool(true) || schemes["modl"].toBool(true)) {
         if (QMessageBox::question(nullptr, "Apply Chrome fix",
                                   "Chrome may not support nexus links even though the association is set up correctly. "
                                   "Do you want to apply a fix for that (You have to close chrome before pressing yes or "
@@ -192,6 +194,7 @@ static void applyChromeFix()
           return;
         }
         schemes["nxm"] = false;
+        schemes["modl"] = false;
         handlers["excluded_schemes"] = schemes;
         docMap["protocol_handler"] = handlers;
         QByteArray result = QJsonDocument(docMap).toJson();
@@ -243,6 +246,7 @@ int main(int argc, char *argv[])
       if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
         if (args.count() == 4) {
           storage->registerHandler(args.at(2).split(",", Qt::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
+          storage->registerModlProxy(QCoreApplication::applicationFilePath());
           if (forceReg) {
             applyChromeFix();
           }
@@ -268,6 +272,22 @@ int main(int argc, char *argv[])
                                             "the links that MO doesn't.").arg(url.game()));
           return 1;
         }
+      } else if (args.at(1).startsWith("modl://")) {
+          QUrl url(args.at(1));
+          QUrlQuery query(url.query());
+          QStringList handlerVals = storage->getHandler(url.host());
+          QString executable = handlerVals.front();
+          if (!executable.isEmpty()) {
+              handleLink(executable, "download", QUrl::fromPercentEncoding(query.queryItemValue("url").toUtf8()));
+              return 0;
+          }
+          else {
+              QMessageBox::warning(nullptr, QObject::tr("No handler found"),
+                  QObject::tr("No application registered to handle this game (%1).\n"
+                      "If you expected Mod Organizer to handle the link, "
+                      "you have to go to Settings->Nexus and click the \"Associate with ... links\"-button.").arg(url.host()));
+              return 1;
+          }
       } else {
         QMessageBox::warning(nullptr, QObject::tr("Invalid Arguments"), QObject::tr("Invalid number of parameters"));
         return 1;
