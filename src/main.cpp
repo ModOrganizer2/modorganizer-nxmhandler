@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
       if ((args.at(1) == "reg") || (args.at(1) == "forcereg")) {
         if (args.count() == 4) {
           storage->registerHandler(args.at(2).split(",", Qt::SkipEmptyParts), QDir::toNativeSeparators(args.at(3)), "", true, forceReg);
-          storage->registerProxy(QCoreApplication::applicationFilePath());
+          storage->registerModlProxy(QCoreApplication::applicationFilePath());
           if (forceReg) {
             applyChromeFix();
           }
