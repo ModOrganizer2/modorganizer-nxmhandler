@@ -145,7 +145,7 @@
   <customwidget>
    <class>MOBase::SortableTreeWidget</class>
    <extends>QTreeWidget</extends>
-   <header location="global">sortabletreewidget.h</header>
+   <header location="global">uibase/sortabletreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
