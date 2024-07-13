@@ -6,6 +6,7 @@ find_package(Qt6 CONFIG REQUIRED COMPONENTS Core Widgets)
 
 add_executable(nxmhandler)
 mo2_configure_target(nxmhandler)
+set_target_properties(nxmhandler PROPERTIES WIN32_EXECUTABLE TRUE)
 target_link_libraries(nxmhandler PRIVATE Qt6::Core Qt6::Widgets mo2::uibase)
 
 install(FILES $<TARGET_FILE:nxmhandler> DESTINATION bin)
