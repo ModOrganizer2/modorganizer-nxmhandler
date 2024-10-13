@@ -1,9 +1,8 @@
 {
-  "dependencies": ["mo2-cmake"],
   "features": {
     "standalone": {
       "description": "Build Standalone.",
-      "dependencies": ["mo2-uibase"]
+      "dependencies": ["mo2-cmake", "mo2-uibase"]
     }
   },
   "vcpkg-configuration": {
