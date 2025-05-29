@@ -1,7 +1,7 @@
 #include "handlerwindow.h"
 #include "handlerstorage.h"
-#include <nxmurl.h>
-#include <utility.h>
+#include <uibase/nxmurl.h>
+#include <uibase/utility.h>
 #include <QApplication>
 #include <QMessageBox>
 #include <QAbstractButton>
