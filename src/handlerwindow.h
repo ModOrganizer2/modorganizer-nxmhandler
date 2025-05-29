@@ -12,7 +12,7 @@ class HandlerWindow;
 class HandlerWindow : public QMainWindow
 {
   Q_OBJECT
-  
+
 public:
   explicit HandlerWindow(QWidget *parent = 0);
   ~HandlerWindow();

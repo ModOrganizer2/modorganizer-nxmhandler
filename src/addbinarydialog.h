@@ -11,7 +11,7 @@ class AddBinaryDialog;
 class AddBinaryDialog : public QDialog
 {
   Q_OBJECT
-  
+
 public:
   explicit AddBinaryDialog(const std::vector<std::tuple<QString, QString, QString>> &handlers, QWidget *parent = 0);
   ~AddBinaryDialog();
