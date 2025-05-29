@@ -52,7 +52,7 @@ void HandlerWindow::setHandlerStorage(HandlerStorage *storage)
     newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
     ui->handlersWidget->addTopLevelItem(newItem);
   }
-  ui->handlersWidget->resizeColumnToContents(COL_BINARY); 
+  ui->handlersWidget->resizeColumnToContents(COL_BINARY);
 }
 
 void HandlerWindow::closeEvent(QCloseEvent *event)
@@ -89,14 +89,14 @@ void HandlerWindow::addBinaryDialog()
       newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
       ui->handlersWidget->insertTopLevelItem(0, newItem);
     }
-    ui->handlersWidget->resizeColumnToContents(COL_BINARY); 
+    ui->handlersWidget->resizeColumnToContents(COL_BINARY);
   }
 }
 
 void HandlerWindow::removeBinary() {
   ui->handlersWidget->takeTopLevelItem(
       ui->handlersWidget->currentIndex().row());
-  ui->handlersWidget->resizeColumnToContents(COL_BINARY); 
+  ui->handlersWidget->resizeColumnToContents(COL_BINARY);
 }
 
 void HandlerWindow::on_handlersWidget_customContextMenuRequested(const QPoint &pos)
@@ -127,4 +127,3 @@ void HandlerWindow::on_registerButton_clicked()
     m_Storage->registerProxy(QCoreApplication::applicationFilePath());
   }
 }
-
