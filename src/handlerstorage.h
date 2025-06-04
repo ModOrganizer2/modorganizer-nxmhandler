@@ -25,6 +25,7 @@ public:
   void clear();
   /// register the primary proxy handler
   void registerProxy(const QString &proxyPath);
+  void registerModlProxy(const QString& proxyPath);
   /// register handler (for all games)
   void registerHandler(const QString &executable, const QString &arguments, bool prepend);
   /// register handler for specified games
