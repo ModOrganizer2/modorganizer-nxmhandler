@@ -75,19 +75,40 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Primary Handler</string>
+         <string>Current NXM Handler</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="handlerView">
+       <widget class="QLineEdit" name="nxmHandlerView">
         <property name="readOnly">
          <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="registerButton">
+       <widget class="QPushButton" name="registerNXMButton">
+        <property name="text">
+         <string>Register active</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Current MODL Handler</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="modlHandlerView"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="registerMODLButton">
         <property name="text">
          <string>Register active</string>
         </property>

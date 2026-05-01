@@ -157,7 +157,7 @@ std::vector<std::tuple<QString, QString, QString>> HandlerStorage::knownGames() 
       std::make_tuple<QString, QString, QString>("Morrowind", "morrowind", "morrowind"),
       std::make_tuple<QString, QString, QString>("Oblivion", "oblivion", "oblivion"),
       std::make_tuple<QString, QString, QString>(
-          "Oblivion Reloaded", "oblivionreloaded", "oblivionreloaded"),
+          "Oblivion Remastered", "oblivionremastered", "oblivionremastered"),
       std::make_tuple<QString, QString, QString>("Fallout 3", "fallout3", "fallout3"),
       std::make_tuple<QString, QString, QString>("Fallout 4", "fallout4", "fallout4"),
       std::make_tuple<QString, QString, QString>("Fallout NV", "falloutnv", "newvegas"),

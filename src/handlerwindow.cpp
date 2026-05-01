@@ -31,13 +31,23 @@ HandlerWindow::~HandlerWindow()
   delete ui;
 }
 
-void HandlerWindow::setPrimaryHandler(const QString& handlerPath)
+void HandlerWindow::setNXMHandler(const QString& handlerPath)
 {
   if (handlerPath == QCoreApplication::applicationFilePath()) {
-    ui->registerButton->setEnabled(false);
-    ui->handlerView->setText(tr("<Current>"));
+    ui->registerNXMButton->setEnabled(false);
+    ui->nxmHandlerView->setText(tr("<Current>"));
   } else {
-    ui->handlerView->setText(handlerPath);
+    ui->nxmHandlerView->setText(handlerPath);
+  }
+}
+
+void HandlerWindow::setMODLHandler(const QString& handlerPath)
+{
+  if (handlerPath == QCoreApplication::applicationFilePath()) {
+    ui->registerMODLButton->setEnabled(false);
+    ui->modlHandlerView->setText(tr("<Current>"));
+  } else {
+    ui->modlHandlerView->setText(handlerPath);
   }
 }
 
@@ -122,19 +132,38 @@ void HandlerWindow::on_handlersWidget_customContextMenuRequested(const QPoint& p
   contextMenu.exec();
 }
 
-void HandlerWindow::on_registerButton_clicked()
+void HandlerWindow::on_registerNXMButton_clicked()
 {
-  if (QMessageBox::question(this, tr("Change handler registration?"),
-                            tr("This will make the nxmhandler.exe you called the "
-                               "primary handler registered in the system.\n"
-                               "That has no immediate impact on how links are "
-                               "handled.\nUse this if you moved Mod Organizer "
-                               "or if you uninstalled the Mod Organizer installation "
-                               "that was previously registered. Continue?"),
-                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-    ui->handlerView->setText(tr("<Current>"));
-    ui->registerButton->setEnabled(false);
+  if (QMessageBox::question(
+          this, tr("Change handler registration?"),
+          tr("This will make the nxmhandler.exe you called the NXM handler "
+             "registered in the system.\n"
+             "That has no immediate impact on how links are handled.\nUse this "
+             "if you moved Mod Organizer "
+             "or if you uninstalled the Mod Organizer installation that was "
+             "previously registered. Continue?"),
+          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+    ui->nxmHandlerView->setText(tr("<Current>"));
+    ui->registerNXMButton->setEnabled(false);
 
     m_Storage->registerNxmProxy(QCoreApplication::applicationFilePath());
+  }
+}
+
+void HandlerWindow::on_registerMODLButton_clicked()
+{
+  if (QMessageBox::question(
+          this, tr("Change handler registration?"),
+          tr("This will make the nxmhandler.exe you called the MODL handler "
+             "registered in the system.\n"
+             "That has no immediate impact on how links are handled.\nUse this "
+             "if you moved Mod Organizer "
+             "or if you uninstalled the Mod Organizer installation that was "
+             "previously registered. Continue?"),
+          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+    ui->modlHandlerView->setText(tr("<Current>"));
+    ui->registerMODLButton->setEnabled(false);
+
+    m_Storage->registerModlProxy(QCoreApplication::applicationFilePath());
   }
 }

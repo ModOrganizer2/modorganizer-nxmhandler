@@ -186,6 +186,19 @@ HandlerStorage* loadStorage(bool forceReg)
         storage->registerNxmProxy(QCoreApplication::applicationFilePath());
       }
     }
+    if (forceReg && (QString::compare(QDir::toNativeSeparators(
+                                          QCoreApplication::applicationFilePath()),
+                                      modlHandlerPath, Qt::CaseInsensitive))) {
+      if (QMessageBox::question(
+              nullptr, QObject::tr("Change Handler?"),
+              QObject::tr("A modl handler from a different Mod Organizer "
+                          "installation has been registered. Do you want to "
+                          "replace it? This is usually not necessary unless "
+                          "the other installation is defective."),
+              QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+        storage->registerModlProxy(QCoreApplication::applicationFilePath());
+      }
+    }
   } else if (!noRegister || forceReg) {
     // no nxm registration
     if (!nxmHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
@@ -422,14 +435,18 @@ int main(int argc, char* argv[])
     } else {
       HandlerWindow win;
       win.setHandlerStorage(storage.get());
-      QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
-                           QSettings::NativeFormat);
-      QStringList handlerVals = HandlerStorage::stripCall(
-          handlerReg.value("shell/open/command/Default").toString());
-      QString handlerPath = handlerVals.front();
-      handlerVals.pop_front();
-      QString handerArgs = handlerVals.join(" ");
-      win.setPrimaryHandler(handlerPath);
+      QSettings nxmHandlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
+                              QSettings::NativeFormat);
+      QStringList nxmHandlerVals = HandlerStorage::stripCall(
+          nxmHandlerReg.value("shell/open/command/Default").toString());
+      QString nxmHandlerPath = nxmHandlerVals.front();
+      win.setNXMHandler(nxmHandlerPath);
+      QSettings modlHandlerReg("HKEY_CURRENT_USER\\Software\\Classes\\modl\\",
+                               QSettings::NativeFormat);
+      QStringList modlHandlerVals = HandlerStorage::stripCall(
+          modlHandlerReg.value("shell/open/command/Default").toString());
+      QString modlHandlerPath = modlHandlerVals.front();
+      win.setMODLHandler(modlHandlerPath);
       win.show();
 
       return app.exec();
