@@ -398,19 +398,20 @@ int main(int argc, char* argv[])
                                   ? params.queryItemValue("source", QUrl::FullyDecoded)
                                   : "";
         if (argumentChunks.contains("%name%")) {
-          argumentChunks.replace(argumentChunks.indexOf("%name%"), "\"" + name + "\"");
+          argumentChunks.replace(argumentChunks.indexOf("%name%"),
+                                 "\"" + name.replace("\"", "\\\"") + "\"");
         }
         if (argumentChunks.contains("%modname%")) {
           argumentChunks.replace(argumentChunks.indexOf("%modname%"),
-                                 "\"" + modName + "\"");
+                                 "\"" + modName.replace("\"", "\\\"") + "\"");
         }
         if (argumentChunks.contains("%version%")) {
           argumentChunks.replace(argumentChunks.indexOf("%version%"),
-                                 "\"" + version + "\"");
+                                 "\"" + version.replace("\"", "\\\"") + "\"");
         }
         if (argumentChunks.contains("%source%")) {
           argumentChunks.replace(argumentChunks.indexOf("%source%"),
-                                 "\"" + source + "\"");
+                                 "\"" + source.replace("\"", "\\\"") + "\"");
         }
         QString arguments = argumentChunks.join(" ");
         if (!executable.isEmpty()) {
