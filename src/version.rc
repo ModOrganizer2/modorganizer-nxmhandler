@@ -1,7 +1,7 @@
 #include "Winver.h"
 
-#define VER_FILEVERSION     1,2,0,0
-#define VER_FILEVERSION_STR "1,2,0,0\0"
+#define VER_FILEVERSION     1,3,0,0
+#define VER_FILEVERSION_STR "1,3,0,0\0"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     VER_FILEVERSION
@@ -17,10 +17,10 @@ BEGIN
       BLOCK "040904B0"
       BEGIN
         VALUE "FileVersion", VER_FILEVERSION_STR
-        VALUE "CompanyName", "Tannin\0"
-        VALUE "FileDescription",  "NXM Link Proxy\0"
+        VALUE "CompanyName", "Mod Organizer 2 Team\0"
+        VALUE "FileDescription",  "MO2 Download Proxy\0"
         VALUE "OriginalFilename", "nxmhandler.exe\0"
-        VALUE "ProductName",      "NXM Handler\0"
+        VALUE "ProductName",      "MO2 Download Proxy\0"
         VALUE "ProductVersion", VER_FILEVERSION_STR
       END
     END

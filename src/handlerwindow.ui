@@ -11,14 +11,14 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NXM Handler</string>
+   <string>MO2 Download Handler</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Use this list to configure programs to handle nxm links. Different Programs can be set up to handle links for different games. If the same game is supported by multiple binaries, the top-most is used.</string>
+       <string>Use this list to configure programs to handle download links. Different programs can be set up to handle links for different games. If the same game is supported by multiple binaries, the top-most is used.</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
