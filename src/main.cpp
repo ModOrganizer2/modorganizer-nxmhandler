@@ -156,29 +156,26 @@ HandlerStorage* registerHandler(HandlerStorage* storage, const QString& schema,
     }
   } else if (!noRegister || forceReg) {
     // no handler registration
-    if (!handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
-      QMessageBox registerBox(
-          QMessageBox::Question, QObject::tr("Register?"),
-          QObject::tr("Mod Organizer is not set up to handle %1 links. "
-                      "Associate it with %1 links?")
-              .arg(schema),
-          QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
-      registerBox.button(QMessageBox::Save)
-          ->setText(QObject::tr("No, don't ask again"));
-      switch (registerBox.exec()) {
-      case QMessageBox::Yes: {
-        // base dir is either the global dir if it exists or the local application
-        // dir
-        if (storage == nullptr)
-          storage = registerSchemaExecutable(baseDir, handlerPath, schema, handlerArgs);
-      } break;
-      case QMessageBox::Save: {
-        settings.setValue("noregister", true);
-      } break;
-      case QMessageBox::No: {
-        settings.setValue("noregister", false);
-      } break;
-      }
+    QMessageBox registerBox(
+        QMessageBox::Question, QObject::tr("Register?"),
+        QObject::tr("Mod Organizer is not set up to handle %1 links. "
+                    "Associate it with %1 links?")
+            .arg(schema),
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
+    registerBox.button(QMessageBox::Save)->setText(QObject::tr("No, don't ask again"));
+    switch (registerBox.exec()) {
+    case QMessageBox::Yes: {
+      // base dir is either the global dir if it exists or the local application
+      // dir
+      if (storage == nullptr)
+        storage = registerSchemaExecutable(baseDir, handlerPath, schema, handlerArgs);
+    } break;
+    case QMessageBox::Save: {
+      settings.setValue("noregister", true);
+    } break;
+    case QMessageBox::No: {
+      settings.setValue("noregister", false);
+    } break;
     }
   }
   return storage;
