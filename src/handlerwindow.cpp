@@ -136,17 +136,16 @@ void HandlerWindow::on_registerNXMButton_clicked()
 {
   if (QMessageBox::question(
           this, tr("Change handler registration?"),
-          tr("This will make the nxmhandler.exe you called the NXM handler "
-             "registered in the system.\n"
-             "That has no immediate impact on how links are handled.\nUse this "
-             "if you moved Mod Organizer "
-             "or if you uninstalled the Mod Organizer installation that was "
-             "previously registered. Continue?"),
+          tr("This will make the nxmhandler.exe you called the NXM handler registered "
+             "in the system.\n"
+             "That has no immediate impact on how links are handled.\n"
+             "Use this if you moved Mod Organizer or if you uninstalled the Mod "
+             "Organizer installation that was previously registered. Continue?"),
           QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
     ui->nxmHandlerView->setText(tr("<Current>"));
     ui->registerNXMButton->setEnabled(false);
 
-    m_Storage->registerNxmProxy(QCoreApplication::applicationFilePath());
+    m_Storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), "nxm");
   }
 }
 
@@ -154,16 +153,15 @@ void HandlerWindow::on_registerMODLButton_clicked()
 {
   if (QMessageBox::question(
           this, tr("Change handler registration?"),
-          tr("This will make the nxmhandler.exe you called the MODL handler "
-             "registered in the system.\n"
-             "That has no immediate impact on how links are handled.\nUse this "
-             "if you moved Mod Organizer "
-             "or if you uninstalled the Mod Organizer installation that was "
-             "previously registered. Continue?"),
+          tr("This will make the nxmhandler.exe you called the MODL handler registered "
+             "in the system.\n"
+             "That has no immediate impact on how links are handled.\n"
+             "Use this if you moved Mod Organizer or if you uninstalled the Mod "
+             "Organizer installation that was previously registered. Continue?"),
           QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
     ui->modlHandlerView->setText(tr("<Current>"));
     ui->registerMODLButton->setEnabled(false);
 
-    m_Storage->registerModlProxy(QCoreApplication::applicationFilePath());
+    m_Storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), "modl");
   }
 }

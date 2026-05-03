@@ -82,30 +82,10 @@ void handleModlLink(const QString& executable, const QString& arguments,
                  SW_SHOWNORMAL);
 }
 
-HandlerStorage* registerNxmExecutable(const QDir& storagePath,
-                                      const QString& handlerPath,
-                                      const QString& handlerArgs)
-{
-  HandlerStorage* storage = nullptr;
-  if (!handlerPath.isEmpty() &&
-      !handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
-    // a foreign or global nxm handler, register ourself and use that handler as
-    // an option - if this is another nxmhandler we could run into problems so
-    // skip it
-    storage = new HandlerStorage(storagePath.path());
-    storage->registerHandler("nxm", handlerPath, handlerArgs, false);
-    storage->registerNxmProxy(QCoreApplication::applicationFilePath());
-  } else {
-    // no handler registered yet or the existing handler is invalid -> overwrite
-    storage = new HandlerStorage(storagePath.path());
-    storage->registerNxmProxy(QCoreApplication::applicationFilePath());
-  }
-  return storage;
-}
-
-HandlerStorage* registerModlExecutable(const QDir& storagePath,
-                                       const QString& handlerPath,
-                                       const QString& handlerArgs)
+HandlerStorage* registerSchemaExecutable(const QDir& storagePath,
+                                         const QString& handlerPath,
+                                         const QString& schema,
+                                         const QString& handlerArgs)
 {
   HandlerStorage* storage = nullptr;
   if (!handlerPath.isEmpty() &&
@@ -113,17 +93,98 @@ HandlerStorage* registerModlExecutable(const QDir& storagePath,
     // a foreign or global nxm handler, register ourself and use that handler as
     // an option - if this is another nxmhandler we could run into problems so skip it
     storage = new HandlerStorage(storagePath.path());
-    storage->registerHandler("modl", handlerPath, handlerArgs, false);
-    storage->registerModlProxy(QCoreApplication::applicationFilePath());
+    storage->registerHandler(schema, handlerPath, handlerArgs, false);
+    storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), schema);
   } else {
     // no handler registered yet or the existing handler is invalid -> overwrite
     storage = new HandlerStorage(storagePath.path());
-    storage->registerModlProxy(QCoreApplication::applicationFilePath());
+    storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), schema);
   }
   return storage;
 }
 
-// ensure a nxmhandler.exe is registered to handle nxm-links, then load the
+HandlerStorage* registerHandler(HandlerStorage* storage, const QString& schema,
+                                bool forceReg)
+{
+  QDir globalStorage(
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+  globalStorage.cd("../ModOrganizer");
+  QDir baseDir;
+  if (globalStorage.exists()) {
+    baseDir = globalStorage;
+  } else {
+    baseDir = QDir(qApp->applicationDirPath());
+  }
+  QSettings handlerReg("HKEY_CURRENT_USER\\Software\\Classes\\" + schema + "\\",
+                       QSettings::NativeFormat);
+  QStringList handlerVals = HandlerStorage::stripCall(
+      handlerReg.value("shell/open/command/Default").toString());
+  QString handlerPath = handlerVals.front();
+  handlerVals.pop_front();
+  QString handlerArgs = handlerVals.join(" ");
+
+  QDir handlerBaseDir = QFileInfo(handlerPath).absoluteDir();
+
+  QSettings settings(baseDir.absoluteFilePath("nxmhandler.ini"), QSettings::IniFormat);
+  bool noRegister = settings.value("noregister", false).toBool();
+  if (globalStorage.exists("nxmhandler.ini") &&
+      handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
+      QFile::exists(handlerPath)) {
+    // global configuration avaible - use it
+    if (storage == nullptr)
+      storage = new HandlerStorage(globalStorage.path());
+  } else if (handlerBaseDir.exists("nxmhandler.ini") &&
+             handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
+             QFile::exists(handlerPath)) {
+    // a portable installation is registered to handle links, use its
+    // configuration
+    if (storage == nullptr)
+      storage = new HandlerStorage(globalStorage.path());
+    if (forceReg && (QString::compare(QDir::toNativeSeparators(
+                                          QCoreApplication::applicationFilePath()),
+                                      handlerPath, Qt::CaseInsensitive))) {
+      if (QMessageBox::question(
+              nullptr, QObject::tr("Change Handler?"),
+              QObject::tr("A %1 handler from a different Mod Organizer "
+                          "installation has been registered. Do you want to "
+                          "replace it? This is usually not necessary unless "
+                          "the other installation is defective.")
+                  .arg(schema),
+              QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+        storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), schema);
+      }
+    }
+  } else if (!noRegister || forceReg) {
+    // no handler registration
+    if (!handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
+      QMessageBox registerBox(
+          QMessageBox::Question, QObject::tr("Register?"),
+          QObject::tr("Mod Organizer is not set up to handle %1 links. "
+                      "Associate it with %1 links?")
+              .arg(schema),
+          QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
+      registerBox.button(QMessageBox::Save)
+          ->setText(QObject::tr("No, don't ask again"));
+      switch (registerBox.exec()) {
+      case QMessageBox::Yes: {
+        // base dir is either the global dir if it exists or the local application
+        // dir
+        if (storage == nullptr)
+          storage = registerSchemaExecutable(baseDir, handlerPath, schema, handlerArgs);
+      } break;
+      case QMessageBox::Save: {
+        settings.setValue("noregister", true);
+      } break;
+      case QMessageBox::No: {
+        settings.setValue("noregister", false);
+      } break;
+      }
+    }
+  }
+  return storage;
+}
+
+// ensure a nxmhandler.exe is registered to handle links, then load the
 // handler storage for that registered instance
 // (even if it's different from the one actually being run)
 HandlerStorage* loadStorage(bool forceReg)
@@ -140,111 +201,9 @@ HandlerStorage* loadStorage(bool forceReg)
     baseDir = QDir(qApp->applicationDirPath());
   }
   NxmHandler::LoggerInit(baseDir.filePath("nxmhandler.log"));
-  QSettings nxmHandlerReg("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
-                          QSettings::NativeFormat);
-  QSettings modlHandlerReg("HKEY_CURRENT_USER\\Software\\Classes\\modl\\",
-                           QSettings::NativeFormat);
-  QStringList nxmHandlerVals = HandlerStorage::stripCall(
-      nxmHandlerReg.value("shell/open/command/Default").toString());
-  QStringList modlHandlerVals = HandlerStorage::stripCall(
-      modlHandlerReg.value("shell/open/command/Default").toString());
-  QString nxmHandlerPath  = nxmHandlerVals.front();
-  QString modlHandlerPath = modlHandlerVals.front();
-  nxmHandlerVals.pop_front();
-  modlHandlerVals.pop_front();
-  QString nxmHandlerArgs  = nxmHandlerVals.join(" ");
-  QString modlHandlerArgs = modlHandlerVals.join(" ");
-
-  QDir nxmHandlerBaseDir  = QFileInfo(nxmHandlerPath).absoluteDir();
-  QDir modlHandlerBaseDir = QFileInfo(modlHandlerPath).absoluteDir();
-
-  QSettings settings(baseDir.absoluteFilePath("nxmhandler.ini"), QSettings::IniFormat);
-  bool noRegister = settings.value("noregister", false).toBool();
-  if (globalStorage.exists("nxmhandler.ini") &&
-      nxmHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
-      modlHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
-      QFile::exists(nxmHandlerPath)) {
-    // global configuration avaible - use it
-    storage = new HandlerStorage(globalStorage.path());
-  } else if (nxmHandlerBaseDir.exists("nxmhandler.ini") &&
-             nxmHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
-             modlHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
-             QFile::exists(nxmHandlerPath)) {
-    // a portable installation is registered to handle links, use its
-    // configuration
-    storage = new HandlerStorage(QFileInfo(nxmHandlerPath).absolutePath());
-    if (forceReg && (QString::compare(QDir::toNativeSeparators(
-                                          QCoreApplication::applicationFilePath()),
-                                      nxmHandlerPath, Qt::CaseInsensitive))) {
-      if (QMessageBox::question(
-              nullptr, QObject::tr("Change Handler?"),
-              QObject::tr("A nxm handler from a different Mod Organizer "
-                          "installation has been registered. Do you want to "
-                          "replace it? This is usually not necessary unless "
-                          "the other installation is defective."),
-              QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-        storage->registerNxmProxy(QCoreApplication::applicationFilePath());
-      }
-    }
-    if (forceReg && (QString::compare(QDir::toNativeSeparators(
-                                          QCoreApplication::applicationFilePath()),
-                                      modlHandlerPath, Qt::CaseInsensitive))) {
-      if (QMessageBox::question(
-              nullptr, QObject::tr("Change Handler?"),
-              QObject::tr("A modl handler from a different Mod Organizer "
-                          "installation has been registered. Do you want to "
-                          "replace it? This is usually not necessary unless "
-                          "the other installation is defective."),
-              QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-        storage->registerModlProxy(QCoreApplication::applicationFilePath());
-      }
-    }
-  } else if (!noRegister || forceReg) {
-    // no nxm registration
-    if (!nxmHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
-      QMessageBox registerBox(
-          QMessageBox::Question, QObject::tr("Register?"),
-          QObject::tr("Mod Organizer is not set up to handle nxm links. "
-                      "Associate it with nxm links?"),
-          QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
-      registerBox.button(QMessageBox::Save)
-          ->setText(QObject::tr("No, don't ask again"));
-      switch (registerBox.exec()) {
-      case QMessageBox::Yes: {
-        // base dir is either the global dir if it exists or the local application
-        // dir
-        storage = registerNxmExecutable(baseDir, nxmHandlerPath, nxmHandlerArgs);
-      } break;
-      case QMessageBox::Save: {
-        settings.setValue("noregister", true);
-      } break;
-      case QMessageBox::No: {
-        settings.setValue("noregister", false);
-      } break;
-      }
-    }
-    if (!modlHandlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
-      QMessageBox registerBox(
-          QMessageBox::Question, QObject::tr("Register?"),
-          QObject::tr("Mod Organizer is not set up to handle modl links. "
-                      "Associate it with modl links?"),
-          QMessageBox::Yes | QMessageBox::No | QMessageBox::Save);
-      registerBox.button(QMessageBox::Save)
-          ->setText(QObject::tr("No, don't ask again"));
-      switch (registerBox.exec()) {
-      case QMessageBox::Yes: {
-        // base dir is either the global dir if it exists or the local application
-        // dir
-        storage = registerModlExecutable(baseDir, nxmHandlerPath, nxmHandlerArgs);
-      } break;
-      case QMessageBox::Save: {
-        settings.setValue("noregister", true);
-      } break;
-      case QMessageBox::No: {
-        settings.setValue("noregister", false);
-      } break;
-      }
-    }
+  QStringList schemas = {"nxm", "modl"};
+  for (auto schema : schemas) {
+    storage = registerHandler(storage, schema, forceReg);
   }
   return storage;
 }
@@ -384,34 +343,20 @@ int main(int argc, char* argv[])
         QString executable      = handlerVals.front();
         QString downloadUrl     = params.queryItemValue("url", QUrl::FullyDecoded);
         handlerVals.pop_front();
-        auto argumentChunks = handlerVals.first().split(" ");
-        auto name           = params.hasQueryItem("name")
-                                  ? params.queryItemValue("name", QUrl::FullyDecoded)
-                                  : "";
-        auto modName        = params.hasQueryItem("modname")
-                                  ? params.queryItemValue("modname", QUrl::FullyDecoded)
-                                  : "";
-        auto version        = params.hasQueryItem("version")
-                                  ? params.queryItemValue("version", QUrl::FullyDecoded)
-                                  : "";
-        auto source         = params.hasQueryItem("source")
-                                  ? params.queryItemValue("source", QUrl::FullyDecoded)
-                                  : "";
-        if (argumentChunks.contains("%name%")) {
-          argumentChunks.replace(argumentChunks.indexOf("%name%"),
-                                 "\"" + name.replace("\"", "\\\"") + "\"");
+        auto argumentChunks                 = handlerVals.first().split(" ");
+        QMap<QString, QString> targetParams = {
+            {"name", ""}, {"modname", ""}, {"version", ""}, {"source", ""}};
+        for (auto param : targetParams.asKeyValueRange()) {
+          auto value = params.hasQueryItem(param.first)
+                           ? params.queryItemValue(param.first, QUrl::FullyDecoded)
+                           : "";
+          targetParams[param.first] = value;
         }
-        if (argumentChunks.contains("%modname%")) {
-          argumentChunks.replace(argumentChunks.indexOf("%modname%"),
-                                 "\"" + modName.replace("\"", "\\\"") + "\"");
-        }
-        if (argumentChunks.contains("%version%")) {
-          argumentChunks.replace(argumentChunks.indexOf("%version%"),
-                                 "\"" + version.replace("\"", "\\\"") + "\"");
-        }
-        if (argumentChunks.contains("%source%")) {
-          argumentChunks.replace(argumentChunks.indexOf("%source%"),
-                                 "\"" + source.replace("\"", "\\\"") + "\"");
+        for (auto param : targetParams.asKeyValueRange()) {
+          if (argumentChunks.contains("%" + param.first + "%")) {
+            argumentChunks.replace(argumentChunks.indexOf("%" + param.first + "%"),
+                                   "\"" + param.second.replace("\"", "\\\"") + "\"");
+          }
         }
         QString arguments = argumentChunks.join(" ");
         if (!executable.isEmpty()) {

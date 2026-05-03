@@ -23,25 +23,14 @@ void HandlerStorage::clear()
   m_Handlers.clear();
 }
 
-void HandlerStorage::registerNxmProxy(const QString& proxyPath)
+void HandlerStorage::registerSchemaProxy(const QString& proxyPath,
+                                         const QString& schema)
 {
-  QSettings settings("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
+  QSettings settings("HKEY_CURRENT_USER\\Software\\Classes\\" + schema + "\\",
                      QSettings::NativeFormat);
   QString myExe =
       QString("\"%1\" ").arg(QDir::toNativeSeparators(proxyPath)).append("\"%1\"");
-  settings.setValue("Default", "URL:NXM Protocol");
-  settings.setValue("URL Protocol", "");
-  settings.setValue("shell/open/command/Default", myExe);
-  settings.sync();
-}
-
-void HandlerStorage::registerModlProxy(const QString& proxyPath)
-{
-  QSettings settings("HKEY_CURRENT_USER\\Software\\Classes\\modl\\",
-                     QSettings::NativeFormat);
-  QString myExe =
-      QString("\"%1\" ").arg(QDir::toNativeSeparators(proxyPath)).append("\"%1\"");
-  settings.setValue("Default", "URL:MODL Protocol");
+  settings.setValue("Default", "URL:" + schema.toUpper() + " Protocol");
   settings.setValue("URL Protocol", "");
   settings.setValue("shell/open/command/Default", myExe);
   settings.sync();

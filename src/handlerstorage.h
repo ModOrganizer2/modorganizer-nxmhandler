@@ -23,10 +23,8 @@ public:
   ~HandlerStorage();
 
   void clear();
-  /// register the nxm proxy handler
-  void registerNxmProxy(const QString& proxyPath);
-  /// register the modl proxy handler
-  void registerModlProxy(const QString& proxyPath);
+  /// register a proxy handler
+  void registerSchemaProxy(const QString& proxyPath, const QString& schema);
   /// register handler (for all games)
   void registerHandler(const QString& schema, const QString& executable,
                        const QString& arguments, bool prepend);
