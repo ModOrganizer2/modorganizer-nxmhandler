@@ -23,7 +23,7 @@ void HandlerStorage::clear()
   m_Handlers.clear();
 }
 
-void HandlerStorage::registerProxy(const QString& proxyPath)
+void HandlerStorage::registerNxmProxy(const QString& proxyPath)
 {
   QSettings settings("HKEY_CURRENT_USER\\Software\\Classes\\nxm\\",
                      QSettings::NativeFormat);
@@ -35,17 +35,29 @@ void HandlerStorage::registerProxy(const QString& proxyPath)
   settings.sync();
 }
 
-void HandlerStorage::registerHandler(const QString& executable,
+void HandlerStorage::registerModlProxy(const QString& proxyPath)
+{
+  QSettings settings("HKEY_CURRENT_USER\\Software\\Classes\\modl\\",
+                     QSettings::NativeFormat);
+  QString myExe =
+      QString("\"%1\" ").arg(QDir::toNativeSeparators(proxyPath)).append("\"%1\"");
+  settings.setValue("Default", "URL:MODL Protocol");
+  settings.setValue("URL Protocol", "");
+  settings.setValue("shell/open/command/Default", myExe);
+  settings.sync();
+}
+
+void HandlerStorage::registerHandler(const QString& schema, const QString& executable,
                                      const QString& arguments, bool prepend)
 {
   QStringList games;
   for (const auto& game : this->knownGames()) {
     games.append(std::get<1>(game));
   }
-  registerHandler(games, executable, arguments, prepend, false);
+  registerHandler(games, schema, executable, arguments, prepend, false);
 }
 
-void HandlerStorage::registerHandler(const QStringList& games,
+void HandlerStorage::registerHandler(const QStringList& games, const QString& schema,
                                      const QString& executable,
                                      const QString& arguments, bool prepend, bool rereg)
 {
@@ -54,12 +66,14 @@ void HandlerStorage::registerHandler(const QStringList& games,
     gamesLower.append(game.toLower());
   }
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
-    if (iter->executable.compare(executable, Qt::CaseInsensitive) == 0) {
-      // executable already registered, update supported games and move it to top if
-      // requested
+    if (iter->executable.compare(executable, Qt::CaseInsensitive) == 0 &&
+        iter->schema.compare(schema, Qt::CaseInsensitive) == 0) {
+      // executable already registered, update supported games and move it to
+      // top if requested
       if (rereg) {
         HandlerInfo info = *iter;
         info.games       = gamesLower;
+        info.arguments   = arguments;
         m_Handlers.erase(iter);
         if (prepend) {
           m_Handlers.push_front(info);
@@ -69,6 +83,7 @@ void HandlerStorage::registerHandler(const QStringList& games,
       } else {
         iter->games.append(gamesLower);
         iter->games.removeDuplicates();
+        iter->arguments = arguments;
       }
       return;  // important: in the rereg-case we changed the list thus screwing up the
                // iterator
@@ -79,6 +94,7 @@ void HandlerStorage::registerHandler(const QStringList& games,
   HandlerInfo info;
   info.ID         = static_cast<int>(m_Handlers.size());
   info.games      = gamesLower;
+  info.schema     = schema;
   info.executable = executable;
   info.arguments  = arguments;
   if (prepend) {
@@ -88,7 +104,7 @@ void HandlerStorage::registerHandler(const QStringList& games,
   }
 }
 
-QStringList HandlerStorage::getHandler(const QString& game) const
+QStringList HandlerStorage::getHandler(const QString& game, const QString& schema) const
 {
   QString gameKey;
   QStringList results;
@@ -102,12 +118,14 @@ QStringList HandlerStorage::getHandler(const QString& game) const
   }
   // look for an explictly registered handler
   for (const HandlerInfo& info : m_Handlers) {
-    for (auto handler : info.games) {
-      if (game.compare(handler, Qt::CaseInsensitive) == 0 ||
-          gameKey.compare(handler, Qt::CaseInsensitive) == 0) {
-        results << info.executable;
-        results << info.arguments;
-        return results;
+    if (info.schema == schema) {
+      for (auto handler : info.games) {
+        if (game.compare(handler, Qt::CaseInsensitive) == 0 ||
+            gameKey.compare(handler, Qt::CaseInsensitive) == 0) {
+          results << info.executable;
+          results << info.arguments;
+          return results;
+        }
       }
     }
   }
@@ -115,10 +133,12 @@ QStringList HandlerStorage::getHandler(const QString& game) const
   // if no registered handler, look for the first "other" entry
   if (results.length() == 0) {
     for (const HandlerInfo& info : m_Handlers) {
-      if (info.games.contains("other", Qt::CaseInsensitive)) {
-        results << info.executable;
-        results << info.arguments;
-        return results;
+      if (info.schema == schema) {
+        if (info.games.contains("other", Qt::CaseInsensitive)) {
+          results << info.executable;
+          results << info.arguments;
+          return results;
+        }
       }
     }
   }
@@ -136,16 +156,24 @@ std::vector<std::tuple<QString, QString, QString>> HandlerStorage::knownGames() 
   return {
       std::make_tuple<QString, QString, QString>("Morrowind", "morrowind", "morrowind"),
       std::make_tuple<QString, QString, QString>("Oblivion", "oblivion", "oblivion"),
+      std::make_tuple<QString, QString, QString>(
+          "Oblivion Reloaded", "oblivionreloaded", "oblivionreloaded"),
       std::make_tuple<QString, QString, QString>("Fallout 3", "fallout3", "fallout3"),
       std::make_tuple<QString, QString, QString>("Fallout 4", "fallout4", "fallout4"),
       std::make_tuple<QString, QString, QString>("Fallout NV", "falloutnv", "newvegas"),
       std::make_tuple<QString, QString, QString>("Skyrim", "skyrim", "skyrim"),
       std::make_tuple<QString, QString, QString>("SkyrimSE", "skyrimse",
                                                  "skyrimspecialedition"),
+      std::make_tuple<QString, QString, QString>("Starfield", "starfield", "starfield"),
       std::make_tuple<QString, QString, QString>("Enderal", "enderal", "enderal"),
       std::make_tuple<QString, QString, QString>("EnderalSE", "enderalse",
                                                  "enderalspecialedition"),
       std::make_tuple<QString, QString, QString>("Other", "other", "other")};
+}
+
+QStringList HandlerStorage::availableSchemas() const
+{
+  return {"nxm", "modl"};
 }
 
 QStringList HandlerStorage::stripCall(const QString& call)
@@ -213,6 +241,7 @@ void HandlerStorage::loadStore()
     if (!gameList.isEmpty()) {
       info.games = gameList.split(",");
     }
+    info.schema     = settings.value("schema", "nxm").toString();
     info.executable = settings.value("executable").toString();
     info.arguments  = settings.value("arguments").toString();
     if (QFile::exists(info.executable)) {
@@ -234,6 +263,7 @@ void HandlerStorage::loadStore()
     ids.append(std::get<1>(*iter));
   }
   info.games      = QStringList() << ids;
+  info.schema     = "nxm";
   info.executable = handlerValues.front();
   handlerValues.pop_front();
   info.arguments = handlerValues.join(" ");
@@ -261,6 +291,7 @@ void HandlerStorage::saveStore()
   for (auto iter = m_Handlers.begin(); iter != m_Handlers.end(); ++iter) {
     settings.setArrayIndex(i++);
     settings.setValue("games", iter->games.join(","));
+    settings.setValue("schema", iter->schema);
     settings.setValue("executable", iter->executable);
     settings.setValue("arguments", iter->arguments);
   }

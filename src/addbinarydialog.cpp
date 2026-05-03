@@ -3,13 +3,18 @@
 #include <QFileDialog>
 
 AddBinaryDialog::AddBinaryDialog(
-    const std::vector<std::tuple<QString, QString, QString>>& games, QWidget* parent)
+    const std::vector<std::tuple<QString, QString, QString>>& games,
+    const QStringList schemas, QWidget* parent)
     : QDialog(parent), ui(new Ui::AddBinaryDialog)
 {
   ui->setupUi(this);
 
   for (auto iter = games.begin(); iter != games.end(); ++iter) {
     addGame(std::get<0>(*iter), std::get<1>(*iter));
+  }
+
+  for (auto schema : schemas) {
+    this->ui->schemaSelector->addItem(schema);
   }
 }
 
@@ -43,6 +48,11 @@ QString AddBinaryDialog::executable()
 QString AddBinaryDialog::arguments()
 {
   return ui->argumentsEdit->text();
+}
+
+QString AddBinaryDialog::schema()
+{
+  return ui->schemaSelector->currentText();
 }
 
 void AddBinaryDialog::on_browseButton_clicked()

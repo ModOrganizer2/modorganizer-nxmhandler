@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>647</width>
-    <height>347</height>
+    <height>362</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,13 +28,13 @@
     <item>
      <widget class="MOBase::SortableTreeWidget" name="handlersWidget">
       <property name="contextMenuPolicy">
-       <enum>Qt::CustomContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
       </property>
       <property name="dragDropMode">
-       <enum>QAbstractItemView::DragDrop</enum>
+       <enum>QAbstractItemView::DragDropMode::DragDrop</enum>
       </property>
       <property name="defaultDropAction">
-       <enum>Qt::MoveAction</enum>
+       <enum>Qt::DropAction::MoveAction</enum>
       </property>
       <property name="indentation">
        <number>0</number>
@@ -42,12 +42,20 @@
       <property name="itemsExpandable">
        <bool>false</bool>
       </property>
+      <property name="columnCount">
+       <number>4</number>
+      </property>
       <attribute name="headerDefaultSectionSize">
        <number>150</number>
       </attribute>
       <column>
        <property name="text">
         <string>Supported Games</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Schema Handler</string>
        </property>
       </column>
       <column>
@@ -92,7 +100,7 @@
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>

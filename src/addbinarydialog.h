@@ -16,11 +16,12 @@ class AddBinaryDialog : public QDialog
 public:
   explicit AddBinaryDialog(
       const std::vector<std::tuple<QString, QString, QString>>& handlers,
-      QWidget* parent = 0);
+      const QStringList schemas, QWidget* parent = 0);
   ~AddBinaryDialog();
   QStringList gameIDs();
   QString executable();
   QString arguments();
+  QString schema();
 private slots:
   void on_browseButton_clicked();
 

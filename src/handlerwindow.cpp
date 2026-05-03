@@ -10,6 +10,7 @@
 enum
 {
   COL_GAMES,
+  COL_SCHEMA,
   COL_BINARY,
   COL_ARGUMENTS
 };
@@ -48,7 +49,7 @@ void HandlerWindow::setHandlerStorage(HandlerStorage* storage)
   auto list = storage->handlers();
   for (auto iter = list.begin(); iter != list.end(); ++iter) {
     QTreeWidgetItem* newItem = new QTreeWidgetItem(
-        QStringList() << iter->games.join(",")
+        QStringList() << iter->games.join(",") << iter->schema
                       << QDir::toNativeSeparators(iter->executable) << iter->arguments);
 
     newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
@@ -63,14 +64,14 @@ void HandlerWindow::closeEvent(QCloseEvent* event)
   for (int i = 0; i < ui->handlersWidget->topLevelItemCount(); ++i) {
     QTreeWidgetItem* item = ui->handlersWidget->topLevelItem(i);
     m_Storage->registerHandler(item->text(0).split(","), item->text(1), item->text(2),
-                               false, false);
+                               item->text(3), false, false);
   }
   QMainWindow::closeEvent(event);
 }
 
 void HandlerWindow::addBinaryDialog()
 {
-  AddBinaryDialog dialog(m_Storage->knownGames());
+  AddBinaryDialog dialog(m_Storage->knownGames(), m_Storage->availableSchemas());
   if (dialog.exec() == QDialog::Accepted) {
     bool executableKnown = false;
     for (int i = 0; i < ui->handlersWidget->topLevelItemCount(); ++i) {
@@ -80,6 +81,7 @@ void HandlerWindow::addBinaryDialog()
         games.append(dialog.gameIDs());
         games.removeDuplicates();
         iterItem->setText(COL_GAMES, games.join(","));
+        iterItem->setText(COL_SCHEMA, dialog.schema());
         if (iterItem->text(COL_ARGUMENTS)
                 .compare(dialog.arguments(), Qt::CaseInsensitive) != 0) {
           iterItem->setText(COL_ARGUMENTS, dialog.arguments());
@@ -90,8 +92,8 @@ void HandlerWindow::addBinaryDialog()
 
     if (!executableKnown) {
       QTreeWidgetItem* newItem = new QTreeWidgetItem(
-          QStringList() << dialog.gameIDs().join(",") << dialog.executable()
-                        << dialog.arguments());
+          QStringList() << dialog.gameIDs().join(",") << dialog.schema()
+                        << dialog.executable() << dialog.arguments());
       newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
       ui->handlersWidget->insertTopLevelItem(0, newItem);
     }
@@ -133,6 +135,6 @@ void HandlerWindow::on_registerButton_clicked()
     ui->handlerView->setText(tr("<Current>"));
     ui->registerButton->setEnabled(false);
 
-    m_Storage->registerProxy(QCoreApplication::applicationFilePath());
+    m_Storage->registerNxmProxy(QCoreApplication::applicationFilePath());
   }
 }
