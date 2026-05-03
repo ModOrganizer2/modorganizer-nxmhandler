@@ -358,6 +358,7 @@ int main(int argc, char* argv[])
                                    "\"" + param.second.replace("\"", "\\\"") + "\"");
           }
         }
+        argumentChunks.append("-g " + url.host());
         QString arguments = argumentChunks.join(" ");
         if (!executable.isEmpty()) {
           handleModlLink(executable, arguments, downloadUrl);
