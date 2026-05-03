@@ -4,19 +4,23 @@
 #include <QDateTime>
 #include <QFile>
 
-namespace NxmHandler {
+namespace NxmHandler
+{
 
 static QFile g_File;
 
-static void logHandler(QtMsgType type, const QMessageLogContext &context, const QString &message)
+static void logHandler(QtMsgType type, const QMessageLogContext& context,
+                       const QString& message)
 {
   if (!g_File.isOpen())
     return;
 
-  g_File.write(qUtf8Printable(QString("[%1] %2\r\n").arg(QDateTime::currentDateTime().toString()).arg(message)));
+  g_File.write(qUtf8Printable(QString("[%1] %2\r\n")
+                                  .arg(QDateTime::currentDateTime().toString())
+                                  .arg(message)));
 }
 
-void LoggerInit(const QString &fileName)
+void LoggerInit(const QString& fileName)
 {
   if (g_File.isOpen())
     g_File.close();
@@ -43,4 +47,4 @@ void LoggerDeinit()
   qInstallMessageHandler(NULL);
 }
 
-}; // namespace NxmHandler
+};  // namespace NxmHandler
