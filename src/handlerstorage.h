@@ -10,6 +10,7 @@ struct HandlerInfo
 {
   int ID;
   QStringList games;
+  QString schema;
   QString executable;
   QString arguments;
 };
@@ -22,16 +23,18 @@ public:
   ~HandlerStorage();
 
   void clear();
-  /// register the primary proxy handler
-  void registerProxy(const QString& proxyPath);
+  /// register a proxy handler
+  void registerSchemaProxy(const QString& proxyPath, const QString& schema);
   /// register handler (for all games)
-  void registerHandler(const QString& executable, const QString& arguments,
-                       bool prepend);
+  void registerHandler(const QString& schema, const QString& executable,
+                       const QString& arguments, bool prepend);
   /// register handler for specified games
-  void registerHandler(const QStringList& games, const QString& executable,
-                       const QString& arguments, bool prepend, bool rereg);
-  QStringList getHandler(const QString& game) const;
+  void registerHandler(const QStringList& games, const QString& schema,
+                       const QString& executable, const QString& arguments,
+                       bool prepend, bool rereg);
+  QStringList getHandler(const QString& game, const QString& schema) const;
   std::vector<std::tuple<QString, QString, QString>> knownGames() const;
+  QStringList availableSchemas() const;
   std::list<HandlerInfo> handlers() const { return m_Handlers; }
 
   static QStringList stripCall(const QString& call);

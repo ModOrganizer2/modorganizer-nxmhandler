@@ -18,7 +18,8 @@ public:
   explicit HandlerWindow(QWidget* parent = 0);
   ~HandlerWindow();
 
-  void setPrimaryHandler(const QString& handlerPath);
+  void setNXMHandler(const QString& handlerPath);
+  void setMODLHandler(const QString& handlerPath);
   void setHandlerStorage(HandlerStorage* storage);
 
 protected:
@@ -27,7 +28,8 @@ private slots:
   void on_handlersWidget_customContextMenuRequested(const QPoint& pos);
   void addBinaryDialog();
   void removeBinary();
-  void on_registerButton_clicked();
+  void on_registerNXMButton_clicked();
+  void on_registerMODLButton_clicked();
 
 private:
   Ui::HandlerWindow* ui;

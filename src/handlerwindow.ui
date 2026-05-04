@@ -7,18 +7,18 @@
     <x>0</x>
     <y>0</y>
     <width>647</width>
-    <height>347</height>
+    <height>362</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NXM Handler</string>
+   <string>MO2 Download Handler</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Use this list to configure programs to handle nxm links. Different Programs can be set up to handle links for different games. If the same game is supported by multiple binaries, the top-most is used.</string>
+       <string>Use this list to configure programs to handle download links. Different programs can be set up to handle links for different games. If the same game is supported by multiple binaries, the top-most is used.</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
@@ -28,13 +28,13 @@
     <item>
      <widget class="MOBase::SortableTreeWidget" name="handlersWidget">
       <property name="contextMenuPolicy">
-       <enum>Qt::CustomContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
       </property>
       <property name="dragDropMode">
-       <enum>QAbstractItemView::DragDrop</enum>
+       <enum>QAbstractItemView::DragDropMode::DragDrop</enum>
       </property>
       <property name="defaultDropAction">
-       <enum>Qt::MoveAction</enum>
+       <enum>Qt::DropAction::MoveAction</enum>
       </property>
       <property name="indentation">
        <number>0</number>
@@ -42,12 +42,20 @@
       <property name="itemsExpandable">
        <bool>false</bool>
       </property>
+      <property name="columnCount">
+       <number>4</number>
+      </property>
       <attribute name="headerDefaultSectionSize">
        <number>150</number>
       </attribute>
       <column>
        <property name="text">
         <string>Supported Games</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Schema Handler</string>
        </property>
       </column>
       <column>
@@ -67,19 +75,40 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Primary Handler</string>
+         <string>Current NXM Handler</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="handlerView">
+       <widget class="QLineEdit" name="nxmHandlerView">
         <property name="readOnly">
          <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="registerButton">
+       <widget class="QPushButton" name="registerNXMButton">
+        <property name="text">
+         <string>Register active</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Current MODL Handler</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="modlHandlerView"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="registerMODLButton">
         <property name="text">
          <string>Register active</string>
         </property>
@@ -92,7 +121,7 @@
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
