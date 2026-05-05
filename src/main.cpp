@@ -103,6 +103,15 @@ HandlerStorage* registerSchemaExecutable(const QDir& storagePath,
   return storage;
 }
 
+QSettings resolveSettings(QDir baseDir)
+{
+  if (!baseDir.exists("downloadhandler.ini") && baseDir.exists("nxmhandler.ini")) {
+    QFile oldSettings(baseDir.absoluteFilePath("nxmhandler.ini"));
+    oldSettings.copy(baseDir.absoluteFilePath("downloadhandler.ini"));
+  }
+  return QSettings(baseDir.absoluteFilePath("downloadhandler.ini"));
+}
+
 HandlerStorage* registerHandler(HandlerStorage* storage, const QString& schema,
                                 bool forceReg)
 {
@@ -125,21 +134,21 @@ HandlerStorage* registerHandler(HandlerStorage* storage, const QString& schema,
 
   QDir handlerBaseDir = QFileInfo(handlerPath).absoluteDir();
 
-  QSettings settings(baseDir.absoluteFilePath("nxmhandler.ini"), QSettings::IniFormat);
-  bool noRegister = settings.value("noregister", false).toBool();
-  if (globalStorage.exists("nxmhandler.ini") &&
+  QSettings settings = resolveSettings(baseDir);
+  bool noRegister    = settings.value("noregister", false).toBool();
+  if (globalStorage.exists("downloadhandler.ini") &&
       handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
       QFile::exists(handlerPath)) {
-    // global configuration avaible - use it
+    // global configuration available - use it
     if (storage == nullptr)
       storage = new HandlerStorage(globalStorage.path());
-  } else if (handlerBaseDir.exists("nxmhandler.ini") &&
+  } else if (handlerBaseDir.exists("downloadhandler.ini") &&
              handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive) &&
              QFile::exists(handlerPath)) {
     // a portable installation is registered to handle links, use its
     // configuration
     if (storage == nullptr)
-      storage = new HandlerStorage(globalStorage.path());
+      storage = new HandlerStorage(handlerBaseDir.path());
     if (forceReg && (QString::compare(QDir::toNativeSeparators(
                                           QCoreApplication::applicationFilePath()),
                                       handlerPath, Qt::CaseInsensitive))) {

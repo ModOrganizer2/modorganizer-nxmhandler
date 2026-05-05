@@ -8,7 +8,7 @@
 static const QRegularExpression invalid_arguments("\"?%[0-9]+\"?");
 
 HandlerStorage::HandlerStorage(const QString& storagePath, QObject* parent)
-    : QObject(parent), m_SettingsPath(storagePath + "/nxmhandler.ini")
+    : QObject(parent), m_SettingsPath(storagePath + "/downloadhandler.ini")
 {
   loadStore();
 }
