@@ -109,7 +109,8 @@ QSettings resolveSettings(QDir baseDir)
     QFile oldSettings(baseDir.absoluteFilePath("nxmhandler.ini"));
     oldSettings.copy(baseDir.absoluteFilePath("downloadhandler.ini"));
   }
-  return QSettings(baseDir.absoluteFilePath("downloadhandler.ini"));
+  return QSettings(baseDir.absoluteFilePath("downloadhandler.ini"),
+                   QSettings::IniFormat);
 }
 
 HandlerStorage* registerHandler(HandlerStorage* storage, const QString& schema,
