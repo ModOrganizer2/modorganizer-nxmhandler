@@ -82,22 +82,24 @@ void handleModlLink(const QString& executable, const QString& arguments,
                  SW_SHOWNORMAL);
 }
 
-HandlerStorage* registerSchemaExecutable(const QDir& storagePath,
+HandlerStorage* registerSchemaExecutable(HandlerStorage* storage,
+                                         const QDir& storagePath,
                                          const QString& handlerPath,
                                          const QString& schema,
                                          const QString& handlerArgs)
 {
-  HandlerStorage* storage = nullptr;
   if (!handlerPath.isEmpty() &&
       !handlerPath.endsWith("nxmhandler.exe", Qt::CaseInsensitive)) {
     // a foreign or global nxm handler, register ourself and use that handler as
     // an option - if this is another nxmhandler we could run into problems so skip it
-    storage = new HandlerStorage(storagePath.path());
+    if (storage == nullptr)
+      storage = new HandlerStorage(storagePath.path());
     storage->registerHandler(schema, handlerPath, handlerArgs, false);
     storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), schema);
   } else {
     // no handler registered yet or the existing handler is invalid -> overwrite
-    storage = new HandlerStorage(storagePath.path());
+    if (storage == nullptr)
+      storage = new HandlerStorage(storagePath.path());
     storage->registerSchemaProxy(QCoreApplication::applicationFilePath(), schema);
   }
   return storage;
@@ -177,8 +179,8 @@ HandlerStorage* registerHandler(HandlerStorage* storage, const QString& schema,
     case QMessageBox::Yes: {
       // base dir is either the global dir if it exists or the local application
       // dir
-      if (storage == nullptr)
-        storage = registerSchemaExecutable(baseDir, handlerPath, schema, handlerArgs);
+      storage =
+          registerSchemaExecutable(storage, baseDir, handlerPath, schema, handlerArgs);
     } break;
     case QMessageBox::Save: {
       settings.setValue("noregister", true);
